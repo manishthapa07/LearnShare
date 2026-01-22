@@ -19,6 +19,9 @@ body {
 
 .main-content {
   min-height: calc(100vh - 60px);
+  padding: 20px;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 code {
@@ -26,3 +29,15 @@ code {
     monospace;
 }
 
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 5px;
+  }
+}

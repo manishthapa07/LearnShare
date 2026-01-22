@@ -9,6 +9,7 @@ const Register = () => {
     email: '',
     password: '',
     full_name: '',
+    mobile: '',
     role: 'student',
     bio: ''
   });
@@ -47,7 +48,7 @@ const Register = () => {
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Username</label>
+            <label>Username *</label>
             <input
               type="text"
               name="username"
@@ -55,36 +56,44 @@ const Register = () => {
               onChange={handleChange}
               required
               minLength="3"
+              pattern="[a-zA-Z0-9_]{3,}"
+              title="Username must be at least 3 characters (letters, numbers, underscore only)"
               placeholder="Choose a username"
             />
+            <small style={{ color: '#666', fontSize: '12px' }}>At least 3 characters (letters, numbers, underscore)</small>
           </div>
 
           <div className="form-group">
-            <label>Email</label>
+            <label>Email *</label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
               required
+              pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+              title="Please enter a valid email address"
               placeholder="Enter your email"
             />
           </div>
 
           <div className="form-group">
-            <label>Full Name</label>
+            <label>Full Name *</label>
             <input
               type="text"
               name="full_name"
               value={formData.full_name}
               onChange={handleChange}
               required
+              minLength="2"
+              pattern="[a-zA-Z ]{2,}"
+              title="Please enter your full name (letters and spaces only)"
               placeholder="Enter your full name"
             />
           </div>
 
           <div className="form-group">
-            <label>Password</label>
+            <label>Password *</label>
             <input
               type="password"
               name="password"
@@ -92,8 +101,26 @@ const Register = () => {
               onChange={handleChange}
               required
               minLength="6"
+              pattern=".{6,}"
+              title="Password must be at least 6 characters long"
               placeholder="Choose a password (min 6 characters)"
             />
+            <small style={{ color: '#666', fontSize: '12px' }}>Must be at least 6 characters</small>
+          </div>
+
+          <div className="form-group">
+            <label>Mobile Number *</label>
+            <input
+              type="tel"
+              name="mobile"
+              value={formData.mobile}
+              onChange={handleChange}
+              required
+              pattern="[0-9]{10}"
+              title="Please enter a valid 10-digit mobile number"
+              placeholder="Enter your mobile number (10 digits)"
+            />
+            <small style={{ color: '#666', fontSize: '12px' }}>10-digit mobile number</small>
           </div>
 
           <div className="form-group">

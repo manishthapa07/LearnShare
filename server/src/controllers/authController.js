@@ -14,7 +14,28 @@ const generateToken = (user) => {
 // Register User
 exports.register = async (req, res) => {
   try {
-    const { username, email, password, full_name, role, bio } = req.body;
+    const { username, email, password, full_name, mobile, role, bio } = req.body;
+
+    // Validate required fields
+    if (!username || !email || !password || !full_name) {
+      return res.status(400).json({ error: 'Please provide all required fields' });
+    }
+
+    // Validate email format
+    const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Please provide a valid email address' });
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    }
+
+    // Validate mobile if provided
+    if (mobile && !/^[0-9]{10}$/.test(mobile)) {
+      return res.status(400).json({ error: 'Please provide a valid 10-digit mobile number' });
+    }
 
     // Validate role
     const validRoles = ['student', 'tutor', 'admin'];
@@ -38,10 +59,10 @@ exports.register = async (req, res) => {
 
     // Create user
     const result = await pool.query(
-      `INSERT INTO users (username, email, password_hash, full_name, role, bio) 
-       VALUES ($1, $2, $3, $4, $5, $6) 
-       RETURNING id, username, email, full_name, role, bio, created_at`,
-      [username, email, password_hash, full_name, role, bio || null]
+      `INSERT INTO users (username, email, password_hash, full_name, mobile, role, bio) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7) 
+       RETURNING id, username, email, full_name, mobile, role, bio, created_at`,
+      [username, email, password_hash, full_name, mobile || null, role, bio || null]
     );
 
     const user = result.rows[0];
@@ -54,6 +75,7 @@ exports.register = async (req, res) => {
         username: user.username,
         email: user.email,
         full_name: user.full_name,
+        mobile: user.mobile,
         role: user.role,
         bio: user.bio
       },
@@ -98,6 +120,7 @@ exports.login = async (req, res) => {
         username: user.username,
         email: user.email,
         full_name: user.full_name,
+        mobile: user.mobile,
         role: user.role,
         bio: user.bio
       },
@@ -113,7 +136,8 @@ exports.login = async (req, res) => {
 exports.getProfile = async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, username, email, full_name, role, bio, profile_picture, created_at 
+      `SELECT id, username, email, full_name, mobile, role, bio, profile_picture, created_at,
+              average_rating, total_reviews
        FROM users WHERE id = $1`,
       [req.user.id]
     );
@@ -132,13 +156,18 @@ exports.getProfile = async (req, res) => {
 // Update User Profile
 exports.updateProfile = async (req, res) => {
   try {
-    const { full_name, bio } = req.body;
+    const { full_name, mobile, bio } = req.body;
+    
+    // Validate mobile if provided
+    if (mobile && mobile.trim() !== '' && !/^[0-9]{10}$/.test(mobile)) {
+      return res.status(400).json({ error: 'Please provide a valid 10-digit mobile number' });
+    }
     
     const result = await pool.query(
-      `UPDATE users SET full_name = $1, bio = $2 
-       WHERE id = $3 
-       RETURNING id, username, email, full_name, role, bio, profile_picture`,
-      [full_name, bio, req.user.id]
+      `UPDATE users SET full_name = $1, mobile = $2, bio = $3 
+       WHERE id = $4 
+       RETURNING id, username, email, full_name, mobile, role, bio, profile_picture`,
+      [full_name, mobile || null, bio, req.user.id]
     );
 
     res.json({

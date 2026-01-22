@@ -56,3 +56,43 @@
 .btn-view:hover {
   background-color: #5568d3;
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .notes-container {
+    padding: 20px 15px;
+  }
+  
+  .notes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+  }
+  
+  .search-bar {
+    flex-direction: column;
+  }
+  
+  .search-bar input {
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .notes-container {
+    padding: 15px 10px;
+  }
+  
+  .notes-container h1 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+  }
+  
+  .notes-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .note-card {
+    padding: 15px;
+  }
+}
