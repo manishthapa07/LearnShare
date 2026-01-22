@@ -9,7 +9,11 @@ export const noteService = {
   },
 
   getAllNotes: async (params = {}) => {
-    const response = await api.get('/notes', { params });
+    // Filter out undefined/null params
+    const cleanParams = Object.fromEntries(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== null && v !== '')
+    );
+    const response = await api.get('/notes', { params: cleanParams });
     return response.data;
   },
 
@@ -27,6 +31,16 @@ export const noteService = {
 
   getUserNotes: async () => {
     const response = await api.get('/notes/user/my-notes');
+    return response.data;
+  },
+
+  getPurchasedNotes: async () => {
+    const response = await api.get('/notes/user/purchased');
+    return response.data;
+  },
+
+  updateNote: async (id, noteData) => {
+    const response = await api.put(`/notes/${id}`, noteData);
     return response.data;
   },
 

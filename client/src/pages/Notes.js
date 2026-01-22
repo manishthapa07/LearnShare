@@ -8,11 +8,18 @@ const Notes = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [subject, setSubject] = useState('');
+  const [priceFilter, setPriceFilter] = useState(''); // '', 'free', 'paid'
 
   useEffect(() => {
     const fetchNotes = async () => {
       try {
-        const data = await noteService.getAllNotes({ search, subject });
+        const filters = { search, subject };
+        if (priceFilter === 'free') {
+          filters.is_free = true;
+        } else if (priceFilter === 'paid') {
+          filters.is_free = false;
+        }
+        const data = await noteService.getAllNotes(filters);
         setNotes(data.notes || []);
       } catch (error) {
         console.error('Error fetching notes:', error);
@@ -22,11 +29,68 @@ const Notes = () => {
     };
     
     fetchNotes();
-  }, [search, subject]);
+  }, [search, subject, priceFilter]);
+
+  const renderStars = (rating) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <span
+          key={i}
+          style={{
+            fontSize: '16px',
+            color: i <= rating ? '#ffc107' : '#ddd'
+          }}
+        >
+          ★
+        </span>
+      );
+    }
+    return stars;
+  };
 
   return (
     <div className="notes-container">
-      <h1>Browse Notes</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h1>Browse Notes</h1>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <Link to="/my-purchased-notes">
+            <button 
+              className="btn-action"
+              style={{
+                padding: '12px 24px',
+                fontSize: '16px',
+                backgroundColor: '#28a745',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+            >
+              📚 My Purchased Notes
+            </button>
+          </Link>
+          <Link to="/upload-note">
+            <button 
+              className="btn-submit"
+              style={{
+                padding: '12px 24px',
+                fontSize: '16px',
+                backgroundColor: '#667eea',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+            >
+              + Upload Note
+            </button>
+          </Link>
+        </div>
+      </div>
+      
       <div className="search-bar">
         <input
           type="text"
@@ -40,6 +104,21 @@ const Notes = () => {
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
         />
+        <select
+          value={priceFilter}
+          onChange={(e) => setPriceFilter(e.target.value)}
+          style={{
+            padding: '10px',
+            borderRadius: '8px',
+            border: '1px solid #ddd',
+            fontSize: '14px',
+            cursor: 'pointer'
+          }}
+        >
+          <option value="">All Notes</option>
+          <option value="free">Free Only</option>
+          <option value="paid">Paid Only</option>
+        </select>
       </div>
       
       {loading ? (
@@ -52,7 +131,15 @@ const Notes = () => {
                 <h3>{note.title}</h3>
                 <p>{note.description}</p>
                 <p><strong>Subject:</strong> {note.subject}</p>
-                <p><strong>Price:</strong> {note.is_free ? 'Free' : `$${note.price}`}</p>
+                {note.rating && (
+                  <div style={{ marginBottom: '8px' }}>
+                    {renderStars(Math.round(note.rating))}
+                    <span style={{ marginLeft: '5px', fontSize: '14px', color: '#666' }}>
+                      ({note.rating.toFixed(1)})
+                    </span>
+                  </div>
+                )}
+                <p><strong>Price:</strong> {note.is_free ? 'Free' : `NPR ${note.price}`}</p>
                 <Link to={`/notes/${note.id}`} className="btn-view">View Details</Link>
               </div>
             ))

@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(100) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     full_name VARCHAR(100) NOT NULL,
+    mobile VARCHAR(20),
     role VARCHAR(20) NOT NULL CHECK (role IN ('student', 'tutor', 'admin')),
     bio TEXT,
     profile_picture VARCHAR(255),
@@ -46,6 +47,7 @@ CREATE TABLE IF NOT EXISTS notes (
     uploader_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     downloads INTEGER DEFAULT 0,
     is_free BOOLEAN DEFAULT false,
+    rating DECIMAL(3, 2) DEFAULT 0.00,
     tags TEXT[],
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -135,6 +137,18 @@ CREATE TABLE IF NOT EXISTS purchases (
     UNIQUE(user_id, note_id)
 );
 
+-- Note Reviews Table
+CREATE TABLE IF NOT EXISTS note_reviews (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    note_id UUID NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    review_text TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, note_id)
+);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
@@ -148,6 +162,8 @@ CREATE INDEX IF NOT EXISTS idx_answers_question ON answers(question_id);
 CREATE INDEX IF NOT EXISTS idx_session_bookings_student ON session_bookings(student_id);
 CREATE INDEX IF NOT EXISTS idx_session_bookings_tutor ON session_bookings(tutor_id);
 CREATE INDEX IF NOT EXISTS idx_reminders_user ON reminders(user_id);
+CREATE INDEX IF NOT EXISTS idx_note_reviews_note ON note_reviews(note_id);
+CREATE INDEX IF NOT EXISTS idx_note_reviews_user ON note_reviews(user_id);
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -182,3 +198,42 @@ CREATE TRIGGER update_session_bookings_updated_at BEFORE UPDATE ON session_booki
 
 CREATE TRIGGER update_reminders_updated_at BEFORE UPDATE ON reminders
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_note_reviews_updated_at BEFORE UPDATE ON note_reviews
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Notifications Table
+CREATE TABLE IF NOT EXISTS notifications (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    type VARCHAR(50) NOT NULL,
+    message TEXT NOT NULL,
+    related_id UUID,
+    is_read BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Session Payments Table
+CREATE TABLE IF NOT EXISTS session_payments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_id UUID NOT NULL REFERENCES session_bookings(id) ON DELETE CASCADE,
+    student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    tutor_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    amount DECIMAL(10, 2) NOT NULL,
+    screenshot_path VARCHAR(255) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+    reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    review_notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for notifications
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_unread ON notifications(user_id, is_read);
+
+-- Indexes for session_payments
+CREATE INDEX IF NOT EXISTS idx_session_payments_session ON session_payments(session_id);
+CREATE INDEX IF NOT EXISTS idx_session_payments_student ON session_payments(student_id);
+CREATE INDEX IF NOT EXISTS idx_session_payments_tutor ON session_payments(tutor_id);
+CREATE INDEX IF NOT EXISTS idx_session_payments_status ON session_payments(status);

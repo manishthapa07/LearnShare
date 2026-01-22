@@ -95,3 +95,81 @@
   font-size: 1.2rem;
   color: #666;
 }
+
+.become-tutor-section {
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.become-tutor-text {
+  color: white;
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.btn-become-tutor {
+  display: inline-block;
+  padding: 12px 30px;
+  background-color: white;
+  color: #667eea;
+  text-decoration: none;
+  border-radius: 25px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-become-tutor:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  color: #5568d3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 20px 15px;
+  }
+  
+  .profile-box {
+    padding: 25px;
+  }
+  
+  .profile-info p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 15px 10px;
+  }
+  
+  .profile-box {
+    padding: 20px;
+  }
+  
+  .profile-box h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+  }
+  
+  .profile-info p {
+    font-size: 0.9rem;
+    margin: 10px 0;
+  }
+  
+  .btn-edit, .btn-become-tutor {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+  
+  .become-tutor-text {
+    font-size: 1rem;
+  }
+}

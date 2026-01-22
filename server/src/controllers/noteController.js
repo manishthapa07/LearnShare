@@ -45,7 +45,7 @@ exports.uploadNote = async (req, res) => {
 // Get All Notes
 exports.getAllNotes = async (req, res) => {
   try {
-    const { subject, category, search, page = 1, limit = 20 } = req.query;
+    const { subject, category, search, is_free, page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
 
     let query = `
@@ -72,6 +72,13 @@ exports.getAllNotes = async (req, res) => {
     if (search) {
       query += ` AND (n.title ILIKE $${paramCount} OR n.description ILIKE $${paramCount})`;
       params.push(`%${search}%`);
+      paramCount++;
+    }
+
+    if (is_free !== undefined && is_free !== '') {
+      const isFreeBoolean = is_free === 'true' || is_free === true;
+      query += ` AND n.is_free = $${paramCount}`;
+      params.push(isFreeBoolean);
       paramCount++;
     }
 
@@ -137,7 +144,19 @@ exports.getNote = async (req, res) => {
       return res.status(404).json({ error: 'Note not found' });
     }
 
-    res.json({ note: result.rows[0] });
+    const note = result.rows[0];
+
+    // Check if user has purchased this note (if logged in)
+    let hasPurchased = false;
+    if (req.user) {
+      const purchaseCheck = await pool.query(
+        `SELECT id FROM purchases WHERE user_id = $1 AND note_id = $2`,
+        [req.user.id, id]
+      );
+      hasPurchased = purchaseCheck.rows.length > 0;
+    }
+
+    res.json({ note, hasPurchased });
   } catch (error) {
     console.error('Get note error:', error);
     res.status(500).json({ error: 'Server error' });
@@ -167,6 +186,19 @@ exports.downloadNote = async (req, res) => {
 
       if (purchaseResult.rows.length === 0 && note.uploader_id !== req.user.id) {
         return res.status(403).json({ error: 'Purchase required to download this note' });
+      }
+    } else {
+      // For free notes, create a purchase record if it doesn't exist (for tracking downloads)
+      const existingPurchase = await pool.query(
+        'SELECT * FROM purchases WHERE user_id = $1 AND note_id = $2',
+        [req.user.id, id]
+      );
+      
+      if (existingPurchase.rows.length === 0) {
+        await pool.query(
+          'INSERT INTO purchases (user_id, note_id) VALUES ($1, $2)',
+          [req.user.id, id]
+        );
       }
     }
 
@@ -230,3 +262,75 @@ exports.deleteNote = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
+// Update Note
+exports.updateNote = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, subject, category, price, is_free, tags } = req.body;
+
+    const noteResult = await pool.query('SELECT * FROM notes WHERE id = $1', [id]);
+
+    if (noteResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+
+    const note = noteResult.rows[0];
+
+    // Check if user is the uploader or admin
+    if (note.uploader_id !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Not authorized to update this note' });
+    }
+
+    const tagsArray = tags ? (Array.isArray(tags) ? tags : tags.split(',').map(t => t.trim())) : note.tags;
+
+    // Update note details
+    const result = await pool.query(
+      `UPDATE notes 
+       SET title = $1, description = $2, subject = $3, category = $4, 
+           price = $5, is_free = $6, tags = $7, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $8
+       RETURNING *`,
+      [
+        title || note.title,
+        description || note.description,
+        subject || note.subject,
+        category || note.category,
+        is_free === true || is_free === 'true' ? 0 : parseFloat(price) || note.price,
+        is_free === true || is_free === 'true',
+        tagsArray,
+        id
+      ]
+    );
+
+    res.json({
+      message: 'Note updated successfully',
+      note: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Update note error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Get User's Purchased Notes (only actual purchases and downloads)
+exports.getPurchasedNotes = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT DISTINCT n.*, u.username as uploader_name, u.full_name as uploader_full_name,
+              pu.purchased_at as purchase_date,
+              CASE WHEN n.is_free = true THEN 'downloaded' ELSE 'purchased' END as access_type
+       FROM notes n
+       JOIN users u ON n.uploader_id = u.id
+       INNER JOIN purchases pu ON n.id = pu.note_id AND pu.user_id = $1
+       ORDER BY pu.purchased_at DESC`,
+      [req.user.id]
+    );
+
+    res.json({ notes: result.rows });
+  } catch (error) {
+    console.error('Get purchased notes error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+

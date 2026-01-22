@@ -10,10 +10,13 @@ router.post('/submit', authMiddleware, uploadPayment.single('screenshot'), payme
 // Get User Payments
 router.get('/my-payments', authMiddleware, paymentController.getUserPayments);
 
+// Get Payments for Uploader's Notes
+router.get('/my-note-payments', authMiddleware, paymentController.getUploaderPayments);
+
 // Get All Payments (Admin)
 router.get('/all', authMiddleware, adminMiddleware, paymentController.getAllPayments);
 
-// Approve/Reject Payment (Admin)
-router.put('/:id/status', authMiddleware, adminMiddleware, paymentController.updatePaymentStatus);
+// Approve/Reject Payment (Admin or Note Uploader)
+router.put('/:id/status', authMiddleware, paymentController.updatePaymentStatus);
 
 module.exports = router;

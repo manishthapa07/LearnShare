@@ -29,5 +29,10 @@ export const tutorService = {
   updateSessionStatus: async (id, statusData) => {
     const response = await api.put(`/tutors/sessions/${id}/status`, statusData);
     return response.data;
+  },
+
+  cancelClassEnrollment: async (classId) => {
+    const response = await api.delete(`/classes/${classId}/cancel-enrollment`);
+    return response.data;
   }
 };

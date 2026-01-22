@@ -9,6 +9,9 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const forumRoutes = require('./routes/forumRoutes');
 const tutorRoutes = require('./routes/tutorRoutes');
 const reminderRoutes = require('./routes/reminderRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const classRoutes = require('./routes/classRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -19,7 +22,29 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Static files for uploads
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+const uploadsPath = path.join(__dirname, '../uploads');
+app.use('/uploads', express.static(uploadsPath));
+console.log(`Serving static files from: ${uploadsPath}`);
+
+// Test route to verify upload serving
+app.get('/test-uploads', (req, res) => {
+  const fs = require('fs');
+  const paymentsDir = path.join(uploadsPath, 'payments');
+  
+  fs.readdir(paymentsDir, (err, files) => {
+    if (err) {
+      return res.json({ error: err.message, path: paymentsDir });
+    }
+    res.json({ 
+      uploadsPath, 
+      paymentsDir,
+      files: files.map(f => ({
+        name: f,
+        url: `/uploads/payments/${f}`
+      }))
+    });
+  });
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -28,6 +53,9 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/forum', forumRoutes);
 app.use('/api/tutors', tutorRoutes);
 app.use('/api/reminders', reminderRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/classes', classRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

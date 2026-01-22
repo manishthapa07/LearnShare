@@ -1,0 +1,55 @@
+/* MySessions Responsive Styles */
+.sessions-table-container {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.sessions-table {
+  width: 100%;
+  min-width: 800px;
+}
+
+@media (max-width: 968px) {
+  .sessions-table {
+    min-width: 700px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sessions-table-container {
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .sessions-table {
+    font-size: 0.9rem;
+  }
+  
+  .sessions-table th,
+  .sessions-table td {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sessions-table {
+    font-size: 0.8rem;
+    min-width: 600px;
+  }
+  
+  .sessions-table th,
+  .sessions-table td {
+    padding: 6px;
+  }
+  
+  .filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  
+  .filter-btn {
+    padding: 6px 10px !important;
+    font-size: 0.8rem !important;
+  }
+}
