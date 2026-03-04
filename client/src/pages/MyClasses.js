@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { classService } from '../services/classService';
+import Modal from '../components/Modal';
 import './Notes.css';
 
 const MyClasses = () => {
   const navigate = useNavigate();
   const [classes, setClasses] = useState([]);
+  const [pendingEnrollments, setPendingEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [modal, setModal] = useState({ show: false, message: '', type: 'info', showCancel: false, onConfirm: null });
 
   useEffect(() => {
     fetchMyClasses();
+    fetchPendingEnrollments();
   }, []);
 
   const fetchMyClasses = async () => {
@@ -24,16 +28,31 @@ const MyClasses = () => {
     }
   };
 
-  const handleDelete = async (classId) => {
-    if (window.confirm('Are you sure you want to delete this class?')) {
-      try {
-        await classService.deleteClass(classId);
-        alert('Class deleted successfully');
-        fetchMyClasses();
-      } catch (err) {
-        alert(err.response?.data?.error || 'Failed to delete class');
-      }
+  const fetchPendingEnrollments = async () => {
+    try {
+      const data = await classService.getPendingEnrollments();
+      setPendingEnrollments(data.enrollments || []);
+    } catch (err) {
+      console.error('Error fetching pending enrollments:', err);
     }
+  };
+
+  const handleDelete = async (classId) => {
+    setModal({
+      show: true,
+      message: 'Are you sure you want to delete this class?',
+      type: 'confirm',
+      showCancel: true,
+      onConfirm: async () => {
+        try {
+          await classService.deleteClass(classId);
+          setModal({ show: true, message: 'Class deleted successfully', type: 'success', showCancel: false });
+          fetchMyClasses();
+        } catch (err) {
+          setModal({ show: true, message: err.response?.data?.error || 'Failed to delete class', type: 'error', showCancel: false });
+        }
+      }
+    });
   };
 
   if (loading) {
@@ -60,6 +79,63 @@ const MyClasses = () => {
           ➕ Create New Class
         </button>
       </div>
+
+      {/* Pending Enrollment Requests Banner */}
+      {pendingEnrollments.length > 0 && (
+        <div style={{
+          background: '#e3f2fd',
+          border: '2px solid #2196f3',
+          borderRadius: '10px',
+          padding: '20px',
+          marginBottom: '25px'
+        }}>
+          <h3 style={{ margin: '0 0 15px 0', color: '#1565c0' }}>
+            🔔 Pending Enrollment Requests ({pendingEnrollments.length})
+          </h3>
+          {pendingEnrollments.slice(0, 3).map(enrollment => (
+            <div key={enrollment.enrollment_id} style={{
+              background: 'white',
+              padding: '15px',
+              borderRadius: '8px',
+              marginBottom: '10px',
+              borderLeft: '4px solid #2196f3'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                <div>
+                  <h4 style={{ margin: '0 0 5px 0', color: '#333' }}>{enrollment.class_title}</h4>
+                  <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}>
+                    👤 {enrollment.student_name} ({enrollment.student_email})
+                  </p>
+                  <p style={{ margin: '5px 0', color: '#999', fontSize: '12px' }}>
+                    Requested {new Date(enrollment.enrollment_date).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+          {pendingEnrollments.length > 3 && (
+            <p style={{ margin: '10px 0 0 0', color: '#666', fontSize: '14px' }}>
+              ... and {pendingEnrollments.length - 3} more
+            </p>
+          )}
+          <button
+            onClick={() => navigate('/enrollment-requests')}
+            style={{
+              marginTop: '15px',
+              padding: '10px 20px',
+              background: '#2196f3',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              fontSize: '14px'
+            }}
+          >
+            📋 View All Requests
+          </button>
+        </div>
+      )}
 
       {error && <div style={{ color: 'red', marginBottom: '20px' }}>{error}</div>}
 
@@ -158,6 +234,15 @@ const MyClasses = () => {
           ))}
         </div>
       )}
+
+      <Modal
+        show={modal.show}
+        message={modal.message}
+        type={modal.type}
+        showCancel={modal.showCancel}
+        onConfirm={modal.onConfirm}
+        onClose={() => setModal({ show: false, message: '', type: 'info', showCancel: false, onConfirm: null })}
+      />
     </div>
   );
 };

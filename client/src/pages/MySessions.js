@@ -16,6 +16,8 @@ const MySessions = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [reviewModal, setReviewModal] = useState({ show: false, session: null });
   const [reviewForm, setReviewForm] = useState({ rating: 5, review_text: '' });
+  const [alertModal, setAlertModal] = useState({ show: false, message: '', type: 'success' });
+  const [promptModal, setPromptModal] = useState({ show: false, title: '', details: '', value: '', onConfirm: null });
 
   useEffect(() => {
     fetchSessions();
@@ -39,10 +41,10 @@ const MySessions = () => {
     setProcessingId(sessionId);
     try {
       await tutorService.updateSessionStatus(sessionId, { status, ...additionalData });
-      alert(`Session ${status} successfully!`);
+      setAlertModal({ show: true, message: `Session ${status} successfully!`, type: 'success' });
       fetchSessions();
     } catch (err) {
-      alert(err.response?.data?.error || `Error updating session status`);
+      setAlertModal({ show: true, message: err.response?.data?.error || `Error updating session status`, type: 'error' });
     } finally {
       setProcessingId(null);
     }
@@ -50,42 +52,41 @@ const MySessions = () => {
 
   const handleConfirm = (sessionId) => {
     const session = sessions.find(s => s.id === sessionId);
-    
-    // Show student details to tutor
-    const studentDetails = `
-Student Details:
-Name: ${session.student_name}
-Email: ${session.student_email}
-Subject: ${session.subject}
-Description: ${session.description}
-Duration: ${session.duration_minutes} minutes
-Date: ${new Date(session.scheduled_date).toLocaleDateString()}
-Time: ${session.scheduled_time}
-
-Please provide the meeting link to confirm this session:
-    `.trim();
-    
-    const meetingLink = prompt(studentDetails);
-    if (meetingLink) {
-      handleStatusUpdate(sessionId, 'confirmed', { meeting_link: meetingLink });
-    }
+    setPromptModal({
+      show: true,
+      title: 'Enter Meeting Link',
+      details: `Student: ${session.student_name} | ${session.subject} | ${new Date(session.scheduled_date).toLocaleDateString()} ${session.scheduled_time}`,
+      value: '',
+      onConfirm: (link) => {
+        setPromptModal({ show: false, title: '', details: '', value: '', onConfirm: null });
+        if (link) handleStatusUpdate(sessionId, 'confirmed', { meeting_link: link });
+      }
+    });
   };
 
   const handleComplete = (sessionId) => {
-    const notes = prompt('Add session notes (optional):');
-    handleStatusUpdate(sessionId, 'completed', { notes: notes || '' });
+    setPromptModal({
+      show: true,
+      title: 'Add session notes (optional):',
+      details: '',
+      value: '',
+      onConfirm: (notes) => {
+        setPromptModal({ show: false, title: '', details: '', value: '', onConfirm: null });
+        handleStatusUpdate(sessionId, 'completed', { notes: notes || '' });
+      }
+    });
   };
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     try {
       await reviewService.createSessionReview(reviewModal.session.id, reviewForm);
-      alert('Review submitted successfully!');
+      setAlertModal({ show: true, message: 'Review submitted successfully!', type: 'success' });
       setReviewModal({ show: false, session: null });
       setReviewForm({ rating: 5, review_text: '' });
-      fetchSessions(); // Refresh to update review status
+      fetchSessions();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to submit review');
+      setAlertModal({ show: true, message: err.response?.data?.error || 'Failed to submit review', type: 'error' });
     }
   };
 
@@ -138,86 +139,33 @@ Please provide the meeting link to confirm this session:
       {error && <div className="error-message">{error}</div>}
       
       {/* Filter Buttons */}
-      <div className="filter-buttons" style={{ 
-        marginBottom: '20px', 
-        display: 'flex', 
-        gap: '10px', 
-        flexWrap: 'wrap',
-        alignItems: 'center'
-      }}>
-        <span style={{ fontWeight: 'bold', marginRight: '10px' }}>Filter:</span>
+      <div className="filter-buttons">
+        <span>Filter:</span>
         {['all', 'pending', 'confirmed', 'completed', 'cancelled'].map(status => (
           <button
             key={status}
             onClick={() => setStatusFilter(status)}
-            className="filter-btn"
-            style={{
-              padding: '8px 16px',
-              backgroundColor: statusFilter === status ? '#667eea' : '#f8f9fa',
-              color: statusFilter === status ? 'white' : '#333',
-              border: statusFilter === status ? 'none' : '1px solid #dee2e6',
-              borderRadius: '20px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: statusFilter === status ? 'bold' : 'normal',
-              textTransform: 'capitalize',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              if (statusFilter !== status) {
-                e.target.style.backgroundColor = '#e9ecef';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (statusFilter !== status) {
-                e.target.style.backgroundColor = '#f8f9fa';
-              }
-            }}
+            className={statusFilter === status ? 'filter-btn filter-btn-active' : 'filter-btn'}
           >
             {status === 'all' ? 'All Sessions' : status}
           </button>
         ))}
       </div>
       
-      <div style={{ marginBottom: '20px' }}>
+      <div className="nav-buttons-container">
         <button
           onClick={() => navigate('/my-class-sessions')}
-          style={{
-            display: 'inline-block',
-            padding: '10px 20px',
-            backgroundColor: '#667eea',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            marginRight: '10px',
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
+          className="session-nav-btn btn-primary"
         >
           📚 View Class Sessions
         </button>
         {user?.role === 'student' && (
-          <Link to="/tutors" className="btn-action" style={{
-            display: 'inline-block',
-            padding: '10px 20px',
-            backgroundColor: '#28a745',
-            color: 'white',
-            textDecoration: 'none',
-            borderRadius: '5px',
-            marginRight: '10px'
-          }}>
+          <Link to="/tutors" className="session-nav-btn btn-success">
             ➕ Book New Session
           </Link>
         )}
         {user?.role === 'tutor' && (
-          <Link to="/session-payments-review" className="btn-action" style={{
-            display: 'inline-block',
-            padding: '10px 20px',
-            backgroundColor: '#28a745',
-            color: 'white',
-            textDecoration: 'none',
-            borderRadius: '5px'
-          }}>
+          <Link to="/session-payments-review" className="session-nav-btn btn-success">
             💰 Review Payments
           </Link>
         )}
@@ -225,125 +173,113 @@ Please provide the meeting link to confirm this session:
 
       {filteredSessions.length > 0 ? (
         <div className="sessions-table-container" key={`filter-${statusFilter}`}>
-          <table className="sessions-table" style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            backgroundColor: 'white',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            borderRadius: '8px'
-          }}>
+          <table className="sessions-table">
             <thead>
-              <tr style={{ backgroundColor: '#f8f9fa', borderBottom: '2px solid #dee2e6' }}>
-                <th style={{ padding: '12px', textAlign: 'left' }}>Date & Time</th>
-                <th style={{ padding: '12px', textAlign: 'left' }}>
+              <tr>
+                <th>Date & Time</th>
+                <th>
                   {user?.role === 'tutor' ? 'Student' : 'Tutor'}
                 </th>
-                <th style={{ padding: '12px', textAlign: 'left' }}>Subject</th>
-                <th style={{ padding: '12px', textAlign: 'left' }}>Duration</th>
-                <th style={{ padding: '12px', textAlign: 'left' }}>Fee</th>
-                <th style={{ padding: '12px', textAlign: 'left' }}>Status</th>
-                <th style={{ padding: '12px', textAlign: 'left' }}>Payment</th>
-                <th style={{ padding: '12px', textAlign: 'left' }}>Meeting Link</th>
-                <th style={{ padding: '12px', textAlign: 'left' }}>Actions</th>
+                <th>Subject</th>
+                <th>Duration</th>
+                <th>Fee</th>
+                <th>Status</th>
+                <th>Payment</th>
+                <th>Meeting Link</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody key={`tbody-${statusFilter}-${filteredSessions.length}`}>
               {filteredSessions.map(session => (
-                <tr key={session.id} style={{ borderBottom: '1px solid #dee2e6' }}>
-                  <td style={{ padding: '12px' }}>
-                    {new Date(session.scheduled_date).toLocaleDateString()}<br/>
-                    <small style={{ color: '#666' }}>{session.scheduled_time}</small>
+                <tr key={session.id}>
+                  <td>
+                    <span className="session-date">{new Date(session.scheduled_date).toLocaleDateString()}</span><br/>
+                    <small className="session-time">{session.scheduled_time}</small>
                   </td>
-                  <td style={{ padding: '12px' }}>
+                  <td>
                     {isTutor(session) ? (
                       <div>
-                        {session.student_name}<br/>
-                        <small style={{ color: '#666' }}>@{session.student_username}</small><br/>
+                        <span className="session-participant">{session.student_name}</span><br/>
+                        <small className="session-participant-username">@{session.student_username}</small><br/>
                         {session.status === 'pending' && (
-                          <small style={{ color: '#999', fontSize: '11px' }}>
+                          <small className="session-participant-email">
                             📧 {session.student_email}
                           </small>
                         )}
                       </div>
                     ) : (
                       <div>
-                        {session.tutor_name}<br/>
-                        <small style={{ color: '#666' }}>@{session.tutor_username}</small>
+                        <span className="session-participant">{session.tutor_name}</span><br/>
+                        <small className="session-participant-username">@{session.tutor_username}</small>
                       </div>
                     )}
                   </td>
-                  <td style={{ padding: '12px' }}>
+                  <td>
                     <strong>{session.subject}</strong><br/>
-                    <small style={{ color: '#666' }}>{session.description}</small>
+                    <small className="session-time">{session.description}</small>
                   </td>
-                  <td style={{ padding: '12px' }}>{session.duration_minutes} min</td>
-                  <td style={{ padding: '12px' }}>
-                    <strong style={{ color: '#667eea', fontSize: '15px' }}>
-                      NPR {session.tutor_hourly_rate ? 
-                        ((session.tutor_hourly_rate * session.duration_minutes) / 60).toFixed(2) : 
-                        'N/A'
-                      }
+                  <td>{session.duration_minutes} min</td>
+                  <td>
+                    <strong className="session-fee">
+                      NPR {(() => {
+                        // If session has class_id, use class fees
+                        if (session.class_id) {
+                          if (session.class_type === 'monthly') {
+                            return session.tutor_monthly_fee ? Number(session.tutor_monthly_fee).toFixed(2) : 'N/A';
+                          } else {
+                            // For hourly classes, use class hourly_rate (not tutor's individual rate)
+                            return session.class_hourly_rate ? 
+                              ((session.class_hourly_rate * session.duration_minutes) / 60).toFixed(2) : 
+                              'N/A';
+                          }
+                        }
+                        // For individual sessions, use tutor's hourly rate
+                        return session.tutor_hourly_rate ? 
+                          ((session.tutor_hourly_rate * session.duration_minutes) / 60).toFixed(2) : 
+                          'N/A';
+                      })()}
                     </strong>
                   </td>
-                  <td style={{ padding: '12px' }}>
+                  <td>
                     {getStatusBadge(session.status)}
                   </td>
-                  <td style={{ padding: '12px' }}>
+                  <td>
                     {session.payment_status ? (
-                      <span style={{
-                        padding: '4px 8px',
-                        borderRadius: '8px',
-                        fontSize: '11px',
-                        fontWeight: 'bold',
-                        backgroundColor: session.payment_status === 'approved' ? '#d4edda' : 
-                                       session.payment_status === 'rejected' ? '#f8d7da' : '#fff3cd',
-                        color: session.payment_status === 'approved' ? '#155724' : 
-                               session.payment_status === 'rejected' ? '#721c24' : '#856404'
-                      }}>
+                      <span className={`payment-status-badge ${session.payment_status}`}>
                         {session.payment_status === 'approved' ? '✓ Paid' : 
                          session.payment_status === 'rejected' ? '✗ Rejected' : '⏳ Pending'}
                       </span>
                     ) : (
-                      <span style={{ color: '#999', fontSize: '12px' }}>Not paid</span>
+                      <span className="payment-status-none">Not paid</span>
                     )}
                   </td>
-                  <td style={{ padding: '12px' }}>
+                  <td>
                     {session.meeting_link ? (
                       session.payment_status === 'approved' ? (
                         <a 
                           href={session.meeting_link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{ color: '#667eea', fontWeight: 'bold' }}
+                          className="meeting-link"
                         >
                           🔗 Join Meeting
                         </a>
                       ) : (
-                        <span style={{ color: '#999' }} title="Payment must be approved to access meeting link">
+                        <span className="meeting-locked" title="Payment must be approved to access meeting link">
                           🔒 Locked
                         </span>
                       )
                     ) : (
-                      <span style={{ color: '#999' }}>Not set</span>
+                      <span className="meeting-not-set">Not set</span>
                     )}
                   </td>
-                  <td style={{ padding: '12px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                  <td>
+                    <div className="session-actions-cell">
                       {/* Student can pay for confirmed sessions only if no payment exists */}
                       {!isTutor(session) && session.status === 'confirmed' && !session.payment_id && (
                         <Link
                           to={`/session-payment/${session.id}`}
-                          style={{
-                            padding: '5px 10px',
-                            backgroundColor: '#28a745',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            textDecoration: 'none',
-                            fontSize: '12px',
-                            textAlign: 'center',
-                            display: 'block'
-                          }}
+                          className="session-action-link pay"
                         >
                           💳 Pay Now
                         </Link>
@@ -354,15 +290,7 @@ Please provide the meeting link to confirm this session:
                         <button
                           onClick={() => handleConfirm(session.id)}
                           disabled={processingId === session.id}
-                          style={{
-                            padding: '5px 10px',
-                            backgroundColor: '#17a2b8',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '12px'
-                          }}
+                          className="session-action-btn btn-confirm"
                         >
                           Confirm
                         </button>
@@ -373,15 +301,7 @@ Please provide the meeting link to confirm this session:
                         <button
                           onClick={() => handleComplete(session.id)}
                           disabled={processingId === session.id}
-                          style={{
-                            padding: '5px 10px',
-                            backgroundColor: '#28a745',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '12px'
-                          }}
+                          className="session-action-btn btn-complete"
                         >
                           Complete
                         </button>
@@ -392,15 +312,7 @@ Please provide the meeting link to confirm this session:
                         <button
                           onClick={() => handleStatusUpdate(session.id, 'cancelled')}
                           disabled={processingId === session.id}
-                          style={{
-                            padding: '5px 10px',
-                            backgroundColor: '#dc3545',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '12px'
-                          }}
+                          className="session-action-btn btn-cancel"
                         >
                           Cancel
                         </button>
@@ -444,20 +356,14 @@ Please provide the meeting link to confirm this session:
           </table>
         </div>
       ) : (
-        <div style={{
-          padding: '40px',
-          textAlign: 'center',
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
+        <div className="empty-sessions">
           <p>
             {statusFilter === 'all' 
               ? 'No sessions found' 
               : `No ${statusFilter} sessions found`}
           </p>
           {user?.role === 'student' && statusFilter === 'all' && (
-            <Link to="/tutors" style={{ color: '#667eea' }}>
+            <Link to="/tutors">
               Browse tutors and book a session
             </Link>
           )}
@@ -466,53 +372,25 @@ Please provide the meeting link to confirm this session:
 
       {/* Review Modal */}
       {reviewModal.show && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            padding: '30px',
-            borderRadius: '10px',
-            maxWidth: '500px',
-            width: '90%',
-            maxHeight: '90vh',
-            overflowY: 'auto'
-          }}>
-            <h3 style={{ marginTop: 0, marginBottom: '20px' }}>
+        <div className="review-modal-overlay">
+          <div className="review-modal">
+            <h3>
               Review {reviewModal.session.tutor_id === user?.id ? reviewModal.session.student_name : reviewModal.session.tutor_name}
             </h3>
             <form onSubmit={handleReviewSubmit}>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>
-                  Rating:
-                </label>
-                <div style={{ display: 'flex', gap: '10px', fontSize: '24px' }}>
-                  {[1, 2, 3, 4, 5].map(star => (
-                    <span
-                      key={star}
-                      onClick={() => setReviewForm({ ...reviewForm, rating: star })}
-                      style={{
-                        cursor: 'pointer',
-                        color: star <= reviewForm.rating ? '#ffc107' : '#ddd',
-                        transition: 'color 0.2s'
-                      }}
-                    >
-                      ★
-                    </span>
-                  ))}
-                  <span style={{ fontSize: '16px', marginLeft: '10px', alignSelf: 'center' }}>
-                    {reviewForm.rating}/5
-                  </span>
-                </div>
+              <div className="rating-selector">
+                <strong>Rating:</strong>
+                {[1, 2, 3, 4, 5].map(star => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                    className={`star-btn ${star <= reviewForm.rating ? 'filled' : 'empty'}`}
+                  >
+                    ★
+                  </button>
+                ))}
+                <span>{reviewForm.rating}/5</span>
               </div>
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>
@@ -523,49 +401,55 @@ Please provide the meeting link to confirm this session:
                   onChange={(e) => setReviewForm({ ...reviewForm, review_text: e.target.value })}
                   placeholder="Share your experience..."
                   rows="4"
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    border: '1px solid #ddd',
-                    borderRadius: '5px',
-                    fontSize: '14px',
-                    fontFamily: 'inherit',
-                    resize: 'vertical',
-                    boxSizing: 'border-box'
-                  }}
                 />
               </div>
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <div className="review-modal-buttons">
                 <button
                   type="button"
                   onClick={() => setReviewModal({ show: false, session: null })}
-                  style={{
-                    padding: '10px 20px',
-                    backgroundColor: '#6c757d',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer'
-                  }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  style={{
-                    padding: '10px 20px',
-                    backgroundColor: '#667eea',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold'
-                  }}
                 >
                   Submit Review
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Alert Modal */}
+      {alertModal.show && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000 }}>
+          <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '30px', maxWidth: '400px', width: '90%', textAlign: 'center', boxShadow: '0 10px 40px rgba(0,0,0,0.2)' }}>
+            <div style={{ fontSize: '48px', marginBottom: '15px' }}>{alertModal.type === 'success' ? '✅' : '❌'}</div>
+            <p style={{ fontSize: '16px', color: '#2c3e50', marginBottom: '20px' }}>{alertModal.message}</p>
+            <button onClick={() => setAlertModal({ show: false, message: '', type: 'success' })} style={{ padding: '10px 30px', backgroundColor: alertModal.type === 'success' ? '#28a745' : '#dc3545', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '15px' }}>OK</button>
+          </div>
+        </div>
+      )}
+
+      {/* Prompt Modal */}
+      {promptModal.show && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000 }}>
+          <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '30px', maxWidth: '450px', width: '90%', boxShadow: '0 10px 40px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ marginTop: 0, color: '#2c3e50', marginBottom: '10px' }}>{promptModal.title}</h3>
+            {promptModal.details && <p style={{ color: '#666', fontSize: '14px', marginBottom: '15px', padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>{promptModal.details}</p>}
+            <input
+              type="text"
+              value={promptModal.value}
+              onChange={(e) => setPromptModal(p => ({ ...p, value: e.target.value }))}
+              onKeyDown={(e) => e.key === 'Enter' && promptModal.onConfirm(promptModal.value)}
+              autoFocus
+              style={{ width: '100%', padding: '10px', border: '2px solid #667eea', borderRadius: '8px', fontSize: '15px', boxSizing: 'border-box', marginBottom: '20px' }}
+            />
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button onClick={() => setPromptModal({ show: false, title: '', details: '', value: '', onConfirm: null })} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Cancel</button>
+              <button onClick={() => promptModal.onConfirm(promptModal.value)} style={{ padding: '10px 20px', backgroundColor: '#667eea', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Confirm</button>
+            </div>
           </div>
         </div>
       )}

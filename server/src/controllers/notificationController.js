@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const logger = require('../utils/logger');
 
 // Get user notifications
 exports.getNotifications = async (req, res) => {
@@ -13,7 +14,7 @@ exports.getNotifications = async (req, res) => {
 
     res.json({ notifications: result.rows });
   } catch (error) {
-    console.error('Get notifications error:', error);
+    logger.error('Get notifications error:', error.message);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -30,7 +31,7 @@ exports.getUnreadCount = async (req, res) => {
 
     res.json({ count: parseInt(result.rows[0].count) });
   } catch (error) {
-    console.error('Get unread count error:', error);
+    logger.error('Get unread count error:', error.message);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -49,7 +50,7 @@ exports.markAsRead = async (req, res) => {
 
     res.json({ message: 'Notification marked as read' });
   } catch (error) {
-    console.error('Mark as read error:', error);
+    logger.error('Mark as read error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -66,7 +67,7 @@ exports.markAllAsRead = async (req, res) => {
 
     res.json({ message: 'All notifications marked as read' });
   } catch (error) {
-    console.error('Mark all as read error:', error);
+    logger.error('Mark all as read error:', error.message);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -74,7 +75,7 @@ exports.markAllAsRead = async (req, res) => {
 // Create notification helper function
 exports.createNotification = async (userId, type, message, relatedId = null) => {
   try {
-    console.log(`[createNotification] Creating notification for user ${userId}, type: ${type}, message: ${message}`);
+    logger.debug(`Creating notification for user ${userId}, type: ${type}`);
     
     const result = await pool.query(
       `INSERT INTO notifications (user_id, type, message, related_id)
@@ -83,10 +84,10 @@ exports.createNotification = async (userId, type, message, relatedId = null) => 
       [userId, type, message, relatedId]
     );
     
-    console.log(`[createNotification] Notification created successfully:`, result.rows[0]);
+    logger.debug('Notification created successfully');
     return result.rows[0];
   } catch (error) {
-    console.error('Create notification error:', error);
+    logger.error('Create notification error:', error.message);
     throw error;
   }
 };

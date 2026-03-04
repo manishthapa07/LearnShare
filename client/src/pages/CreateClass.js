@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { classService } from '../services/classService';
+import Modal from '../components/Modal';
 import './Notes.css';
 
 const CreateClass = () => {
@@ -17,10 +18,15 @@ const CreateClass = () => {
     end_time: '',
     monthly_fee: '',
     hourly_rate: '',
-    max_students: 20
+    max_students: 20,
+    payment_bank_account: '',
+    payment_esewa_id: '',
+    payment_khalti_id: '',
+    payment_qr_code: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [modal, setModal] = useState({ show: false, message: '', type: 'info' });
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -43,17 +49,32 @@ const CreateClass = () => {
 
     try {
       await classService.createClass(formData);
-      alert('Class created successfully!');
-      navigate('/my-classes');
+      setModal({ show: true, message: 'Class created successfully!', type: 'success' });
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to create class');
-    } finally {
       setLoading(false);
     }
   };
 
   return (
     <div className="notes-container">
+      <button
+        onClick={() => navigate('/my-classes')}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          background: 'none',
+          border: 'none',
+          color: '#667eea',
+          fontSize: '0.95rem',
+          fontWeight: '600',
+          cursor: 'pointer',
+          padding: '0 0 16px 0',
+        }}
+      >
+        ← Back to My Classes
+      </button>
       <h1>Create Tuition Class</h1>
 
       {error && <div style={{ color: 'red', marginBottom: '20px' }}>{error}</div>}
@@ -339,6 +360,106 @@ const CreateClass = () => {
           />
         </div>
 
+        {/* Payment Receiving Details */}
+        <div style={{
+          marginTop: '30px',
+          marginBottom: '30px',
+          padding: '20px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '8px',
+          border: '2px solid #667eea'
+        }}>
+          <h3 style={{ marginTop: 0, color: '#667eea', marginBottom: '15px' }}>
+            💳 Payment Receiving Details
+          </h3>
+          <p style={{ color: '#666', fontSize: '14px', marginBottom: '20px' }}>
+            Provide at least one payment method. Students will use these details to pay for your class.
+          </p>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              Bank Account Number
+            </label>
+            <input
+              type="text"
+              name="payment_bank_account"
+              value={formData.payment_bank_account}
+              onChange={handleChange}
+              placeholder="e.g., 1234567890 (Bank Name - Account Holder Name)"
+              style={{
+                width: '100%',
+                padding: '10px',
+                border: '1px solid #ddd',
+                borderRadius: '5px',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              eSewa ID
+            </label>
+            <input
+              type="text"
+              name="payment_esewa_id"
+              value={formData.payment_esewa_id}
+              onChange={handleChange}
+              placeholder="e.g., 9876543210"
+              style={{
+                width: '100%',
+                padding: '10px',
+                border: '1px solid #ddd',
+                borderRadius: '5px',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              Khalti Number
+            </label>
+            <input
+              type="text"
+              name="payment_khalti_id"
+              value={formData.payment_khalti_id}
+              onChange={handleChange}
+              placeholder="e.g., 9876543210"
+              style={{
+                width: '100%',
+                padding: '10px',
+                border: '1px solid #ddd',
+                borderRadius: '5px',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '0' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              Payment QR Code URL (Optional)
+            </label>
+            <input
+              type="text"
+              name="payment_qr_code"
+              value={formData.payment_qr_code}
+              onChange={handleChange}
+              placeholder="e.g., https://example.com/my-qr-code.png"
+              style={{
+                width: '100%',
+                padding: '10px',
+                border: '1px solid #ddd',
+                borderRadius: '5px',
+                fontSize: '14px'
+              }}
+            />
+            <small style={{ color: '#666', fontSize: '12px' }}>
+              Upload your QR code to an image hosting service and paste the URL here
+            </small>
+          </div>
+        </div>
+
         {/* Submit Button */}
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
           <button
@@ -374,6 +495,17 @@ const CreateClass = () => {
           </button>
         </div>
       </form>
+
+      <Modal
+        show={modal.show}
+        message={modal.message}
+        type={modal.type}
+        onClose={() => {
+          setModal({ show: false, message: '', type: 'info' });
+          setLoading(false);
+          navigate('/my-classes');
+        }}
+      />
     </div>
   );
 };

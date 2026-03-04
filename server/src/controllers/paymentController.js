@@ -1,5 +1,6 @@
 const pool = require('../config/database');
 const { createNotification } = require('./notificationController');
+const logger = require('../utils/logger');
 
 // Submit Payment
 exports.submitPayment = async (req, res) => {
@@ -34,7 +35,7 @@ exports.submitPayment = async (req, res) => {
     if (noteResult.rows.length > 0) {
       const note = noteResult.rows[0];
       
-      console.log(`[NOTIFICATION] Creating payment notification for uploader ${note.uploader_id}`);
+      logger.debug(`Creating payment notification for uploader ${note.uploader_id}`);
       
       // Notify the note uploader about new payment
       await createNotification(
@@ -44,9 +45,9 @@ exports.submitPayment = async (req, res) => {
         payment.id
       );
       
-      console.log(`[NOTIFICATION] Payment notification created successfully`);
+      logger.debug('Payment notification created successfully');
     } else {
-      console.log(`[NOTIFICATION] No note found for notification`);
+      logger.debug('No note found for notification');
     }
 
     res.status(201).json({
@@ -54,7 +55,7 @@ exports.submitPayment = async (req, res) => {
       payment
     });
   } catch (error) {
-    console.error('Submit payment error:', error);
+    logger.error('Submit payment error:', error);
     res.status(500).json({ error: 'Server error during payment submission' });
   }
 };
@@ -73,7 +74,7 @@ exports.getUserPayments = async (req, res) => {
 
     res.json({ payments: result.rows });
   } catch (error) {
-    console.error('Get user payments error:', error);
+    logger.error('Get user payments error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -102,7 +103,7 @@ exports.getAllPayments = async (req, res) => {
 
     res.json({ payments: result.rows });
   } catch (error) {
-    console.error('Get all payments error:', error);
+    logger.error('Get all payments error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -136,7 +137,7 @@ exports.updatePaymentStatus = async (req, res) => {
     const isAdmin = req.user.role === 'admin';
     const isUploader = paymentData.uploader_id === req.user.id;
 
-    console.log(`[updatePaymentStatus] Payment ${id} - User: ${req.user.id}, isAdmin: ${isAdmin}, isUploader: ${isUploader}, NoteUploader: ${paymentData.uploader_id}`);
+    logger.debug(`Payment ${id} - User: ${req.user.id}, isAdmin: ${isAdmin}, isUploader: ${isUploader}`);
 
     if (!isAdmin && !isUploader) {
       return res.status(403).json({ error: 'Not authorized to update this payment' });
@@ -167,7 +168,7 @@ exports.updatePaymentStatus = async (req, res) => {
       payment: result.rows[0]
     });
   } catch (error) {
-    console.error('Update payment status error:', error);
+    logger.error('Update payment status error:', error.message);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -177,7 +178,7 @@ exports.getUploaderPayments = async (req, res) => {
   try {
     const { status } = req.query;
 
-    console.log(`[getUploaderPayments] User ${req.user.id} (${req.user.username}) fetching earnings`);
+    logger.debug(`User ${req.user.id} fetching uploader payments`);
 
     let query = `
       SELECT p.*, u.username as buyer_username, u.email as buyer_email, 
@@ -199,7 +200,7 @@ exports.getUploaderPayments = async (req, res) => {
 
     const result = await pool.query(query, params);
 
-    console.log(`[getUploaderPayments] Found ${result.rows.length} payments for uploader`);
+    logger.debug(`Found ${result.rows.length} payments for uploader`);
 
     // Get summary stats
     const statsResult = await pool.query(
@@ -219,7 +220,7 @@ exports.getUploaderPayments = async (req, res) => {
       stats: statsResult.rows[0]
     });
   } catch (error) {
-    console.error('Get uploader payments error:', error);
+    logger.error('Get uploader payments error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

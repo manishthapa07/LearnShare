@@ -13,6 +13,7 @@ const Tutors = () => {
 
   useEffect(() => {
     fetchTutors();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, expertise]);
 
   const fetchTutors = async () => {
@@ -46,23 +47,11 @@ const Tutors = () => {
 
   return (
     <div className="notes-container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+      <div className="page-header">
         <h1>Find a Tutor</h1>
         {user?.role === 'tutor' && (
           <Link to={`/tutors/${user.id}`}>
-            <button 
-              className="btn-submit"
-              style={{
-                padding: '12px 24px',
-                fontSize: '16px',
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontWeight: 'bold'
-              }}
-            >
+            <button className="btn-submit">
               📚 My Tutor Profile
             </button>
           </Link>
@@ -92,29 +81,17 @@ const Tutors = () => {
             tutors.map(tutor => (
               <div key={tutor.user_id} className="note-card">
                 <h3>{tutor.full_name}</h3>
-                <p style={{ fontSize: '14px', color: '#666' }}>@{tutor.username}</p>
+                <p className="tutor-username">@{tutor.username}</p>
                 
                 {tutor.bio && (
-                  <p style={{ fontSize: '14px', marginTop: '10px' }}>{tutor.bio}</p>
+                  <p className="tutor-bio">{tutor.bio}</p>
                 )}
                 
-                <div style={{ marginTop: '10px' }}>
+                <div className="tutor-expertise">
                   <strong>Expertise:</strong>
-                  <div style={{ marginTop: '5px' }}>
+                  <div className="expertise-tags">
                     {tutor.expertise?.map((exp, idx) => (
-                      <span
-                        key={idx}
-                        style={{
-                          display: 'inline-block',
-                          backgroundColor: '#667eea',
-                          color: 'white',
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          fontSize: '12px',
-                          marginRight: '5px',
-                          marginBottom: '5px'
-                        }}
-                      >
+                      <span key={idx} className="expertise-tag">
                         {exp}
                       </span>
                     ))}
@@ -122,29 +99,29 @@ const Tutors = () => {
                 </div>
                 
                 {tutor.education && (
-                  <p style={{ marginTop: '10px', fontSize: '14px' }}>
+                  <p className="tutor-info-item">
                     <strong>Education:</strong> {tutor.education}
                   </p>
                 )}
                 
                 {tutor.experience_years && (
-                  <p style={{ fontSize: '14px' }}>
+                  <p className="tutor-info-item">
                     <strong>Experience:</strong> {tutor.experience_years} years
                   </p>
                 )}
                 
-                <p style={{ fontSize: '16px', color: '#28a745', fontWeight: 'bold', marginTop: '10px' }}>
+                <p className="tutor-price">
                   NPR {tutor.hourly_rate}/hour
                 </p>
                 
-                <div style={{ marginTop: '10px' }}>
-                  {renderStars(Math.round(tutor.rating || 0))}
-                  <span style={{ marginLeft: '5px', fontSize: '14px', color: '#666' }}>
+                <div className="tutor-rating">
+                  <div className="stars">{renderStars(Math.round(tutor.rating || 0))}</div>
+                  <span className="tutor-sessions-count">
                     ({tutor.total_sessions || 0} sessions)
                   </span>
                 </div>
                 
-                <Link to={`/tutors/${tutor.user_id}`} className="btn-view" style={{ marginTop: '15px', display: 'inline-block' }}>
+                <Link to={`/tutors/${tutor.user_id}`} className="btn-view">
                   View Profile & Book
                 </Link>
               </div>

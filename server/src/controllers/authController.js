@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/database');
+const logger = require('../utils/logger');
 
 // Generate JWT Token
 const generateToken = (user) => {
@@ -27,9 +28,24 @@ exports.register = async (req, res) => {
       return res.status(400).json({ error: 'Please provide a valid email address' });
     }
 
-    // Validate password length
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    // Validate password strength
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+    }
+    
+    // Check for uppercase letter
+    if (!/[A-Z]/.test(password)) {
+      return res.status(400).json({ error: 'Password must contain at least one uppercase letter' });
+    }
+    
+    // Check for number
+    if (!/[0-9]/.test(password)) {
+      return res.status(400).json({ error: 'Password must contain at least one number' });
+    }
+    
+    // Check for special character
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      return res.status(400).json({ error: 'Password must contain at least one symbol (!@#$%^&*...)' });
     }
 
     // Validate mobile if provided
@@ -82,7 +98,7 @@ exports.register = async (req, res) => {
       token
     });
   } catch (error) {
-    console.error('Register error:', error);
+    logger.error('Register error:', error);
     res.status(500).json({ error: 'Server error during registration' });
   }
 };
@@ -127,7 +143,7 @@ exports.login = async (req, res) => {
       token
     });
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error('Login error:', error);
     res.status(500).json({ error: 'Server error during login' });
   }
 };
@@ -148,7 +164,7 @@ exports.getProfile = async (req, res) => {
 
     res.json({ user: result.rows[0] });
   } catch (error) {
-    console.error('Get profile error:', error);
+    logger.error('Get profile error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -175,7 +191,7 @@ exports.updateProfile = async (req, res) => {
       user: result.rows[0]
     });
   } catch (error) {
-    console.error('Update profile error:', error);
+    logger.error('Update profile error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

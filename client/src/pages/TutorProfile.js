@@ -27,6 +27,7 @@ const TutorProfile = () => {
     if (id) {
       fetchTutorProfile();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchTutorProfile = async () => {
@@ -105,6 +106,24 @@ const TutorProfile = () => {
   return (
     <div className="profile-container">
       <div className="profile-box">
+        <button
+          onClick={() => navigate('/tutors')}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'none',
+            border: 'none',
+            color: '#667eea',
+            fontSize: '0.95rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            padding: '0 0 16px 0',
+            textDecoration: 'none',
+          }}
+        >
+          ← Back to Tutors
+        </button>
         <h2>{profile?.full_name || 'Create Your Tutor Profile'}</h2>
         
         {message && <div className="success-message">{message}</div>}

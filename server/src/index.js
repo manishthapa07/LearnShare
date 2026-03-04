@@ -1,7 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
+
+const logger = require('./utils/logger');
+const { validateEnv, checkRecommendedEnv } = require('./utils/envValidator');
+
+// Validate environment variables
+validateEnv(['DB_HOST', 'DB_USER', 'DB_PASSWORD', 'DB_NAME', 'JWT_SECRET']);
+checkRecommendedEnv(['NODE_ENV', 'PORT']);
 
 const authRoutes = require('./routes/authRoutes');
 const noteRoutes = require('./routes/noteRoutes');
@@ -24,27 +31,29 @@ app.use(express.urlencoded({ extended: true }));
 // Static files for uploads
 const uploadsPath = path.join(__dirname, '../uploads');
 app.use('/uploads', express.static(uploadsPath));
-console.log(`Serving static files from: ${uploadsPath}`);
+logger.info(`Serving static files from: ${uploadsPath}`);
 
-// Test route to verify upload serving
-app.get('/test-uploads', (req, res) => {
-  const fs = require('fs');
-  const paymentsDir = path.join(uploadsPath, 'payments');
-  
-  fs.readdir(paymentsDir, (err, files) => {
-    if (err) {
-      return res.json({ error: err.message, path: paymentsDir });
-    }
-    res.json({ 
-      uploadsPath, 
-      paymentsDir,
-      files: files.map(f => ({
-        name: f,
-        url: `/uploads/payments/${f}`
-      }))
+// Test route to verify upload serving (development only)
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/test-uploads', (req, res) => {
+    const fs = require('fs');
+    const paymentsDir = path.join(uploadsPath, 'payments');
+    
+    fs.readdir(paymentsDir, (err, files) => {
+      if (err) {
+        return res.json({ error: err.message, path: paymentsDir });
+      }
+      res.json({ 
+        uploadsPath, 
+        paymentsDir,
+        files: files.map(f => ({
+          name: f,
+          url: `/uploads/payments/${f}`
+        }))
+      });
     });
   });
-});
+}
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -64,7 +73,10 @@ app.get('/api/health', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  logger.error('Unhandled error:', err.message);
+  if (process.env.NODE_ENV === 'development') {
+    logger.debug('Stack trace:', err.stack);
+  }
   res.status(500).json({ 
     error: err.message || 'Something went wrong!',
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
@@ -77,8 +89,9 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.success(`Server is running on port ${PORT}`);
+  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.info(`API available at: http://localhost:${PORT}/api`);
 });
 
 module.exports = app;

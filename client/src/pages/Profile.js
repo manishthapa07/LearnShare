@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import './Profile.css';
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -46,7 +46,8 @@ const Profile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await authService.updateProfile(formData);
+      const data = await authService.updateProfile(formData);
+      if (data.user) updateUser(data.user);
       setMessage('Profile updated successfully!');
       setEditing(false);
       fetchProfile();
@@ -116,6 +117,11 @@ const Profile = () => {
                   </Link>
                 </div>
               )}
+            </div>
+            <div className="profile-logout-row">
+              <button onClick={logout} className="btn-logout-profile">
+                🚪 Logout
+              </button>
             </div>
           </div>
         ) : (

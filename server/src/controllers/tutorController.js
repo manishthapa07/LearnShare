@@ -1,5 +1,6 @@
 const pool = require('../config/database');
 const { createNotification } = require('./notificationController');
+const logger = require('../utils/logger');
 
 // Create/Update Tutor Profile
 exports.createOrUpdateProfile = async (req, res) => {
@@ -39,7 +40,7 @@ exports.createOrUpdateProfile = async (req, res) => {
       profile: result.rows[0]
     });
   } catch (error) {
-    console.error('Create/Update tutor profile error:', error);
+    logger.error('Create/Update tutor profile error:', error.message);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -63,7 +64,7 @@ exports.getTutorProfile = async (req, res) => {
 
     res.json({ profile: result.rows[0] });
   } catch (error) {
-    console.error('Get tutor profile error:', error);
+    logger.error('Get tutor profile error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -100,7 +101,7 @@ exports.getAllTutors = async (req, res) => {
 
     res.json({ tutors: result.rows });
   } catch (error) {
-    console.error('Get all tutors error:', error);
+    logger.error('Get all tutors error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -135,21 +136,21 @@ exports.bookSession = async (req, res) => {
     );
 
     // Create notification for tutor
-    console.log('[SESSION BOOKING] Creating notification for tutor:', tutor_id);
+    logger.debug('Creating notification for tutor:', tutor_id);
     await createNotification(
       tutor_id,
       'session_booking',
       `New session booking from ${studentName} for ${subject} on ${scheduled_date}`,
       result.rows[0].id
     );
-    console.log('[SESSION BOOKING] Notification created successfully');
+    logger.debug('Notification created successfully');
 
     res.status(201).json({
       message: 'Session booked successfully',
       booking: result.rows[0]
     });
   } catch (error) {
-    console.error('Book session error:', error);
+    logger.error('Book session error:', error);
     res.status(500).json({ error: 'Server error during session booking' });
   }
 };
@@ -186,7 +187,9 @@ exports.getUserBookings = async (req, res) => {
           END
         ) as payment_amount,
         tp.hourly_rate as tutor_hourly_rate,
-        tc.monthly_fee as tutor_monthly_fee, tc.class_type,
+        tc.monthly_fee as tutor_monthly_fee, 
+        tc.hourly_rate as class_hourly_rate,
+        tc.class_type,
         CAST((SELECT COUNT(*) FROM session_reviews WHERE session_id = sb.id AND reviewer_id = $1) AS INTEGER) as user_has_reviewed
        FROM session_bookings sb
        JOIN users t ON sb.tutor_id = t.id
@@ -200,7 +203,7 @@ exports.getUserBookings = async (req, res) => {
 
     res.json({ bookings: result.rows });
   } catch (error) {
-    console.error('Get user bookings error:', error);
+    logger.error('Get user bookings error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -272,7 +275,7 @@ exports.updateSessionStatus = async (req, res) => {
       booking: result.rows[0]
     });
   } catch (error) {
-    console.error('Update session status error:', error);
+    logger.error('Update session status error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -325,7 +328,7 @@ exports.submitSessionPayment = async (req, res) => {
       payment: result.rows[0]
     });
   } catch (error) {
-    console.error('Submit session payment error:', error);
+    logger.error('Submit session payment error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -347,7 +350,7 @@ exports.getSessionPayments = async (req, res) => {
 
     res.json({ payments: result.rows });
   } catch (error) {
-    console.error('Get session payments error:', error);
+    logger.error('Get session payments error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -369,7 +372,7 @@ exports.getMySessionPayments = async (req, res) => {
 
     res.json({ payments: result.rows });
   } catch (error) {
-    console.error('Get my session payments error:', error);
+    logger.error('Get my session payments error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -426,7 +429,7 @@ exports.reviewSessionPayment = async (req, res) => {
       payment: result.rows[0]
     });
   } catch (error) {
-    console.error('Review session payment error:', error);
+    logger.error('Review session payment error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -515,7 +518,7 @@ exports.createSessionReview = async (req, res) => {
       review: reviewResult.rows[0]
     });
   } catch (error) {
-    console.error('Create session review error:', error);
+    logger.error('Create session review error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -538,7 +541,7 @@ exports.getSessionReviews = async (req, res) => {
 
     res.json({ reviews: result.rows });
   } catch (error) {
-    console.error('Get session reviews error:', error);
+    logger.error('Get session reviews error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -564,7 +567,7 @@ exports.getUserReviews = async (req, res) => {
 
     res.json({ reviews: result.rows });
   } catch (error) {
-    console.error('Get user reviews error:', error);
+    logger.error('Get user reviews error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

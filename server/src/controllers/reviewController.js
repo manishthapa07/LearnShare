@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const logger = require('../utils/logger');
 
 // Add/Update Review
 exports.addOrUpdateReview = async (req, res) => {
@@ -59,7 +60,7 @@ exports.addOrUpdateReview = async (req, res) => {
       review: result.rows[0]
     });
   } catch (error) {
-    console.error('Add/Update review error:', error);
+    logger.error('Add/Update review error:', error);
     res.status(500).json({ error: 'Server error during review submission' });
   }
 };
@@ -92,7 +93,7 @@ exports.getNoteReviews = async (req, res) => {
       review_count: parseInt(avgResult.rows[0].review_count)
     });
   } catch (error) {
-    console.error('Get note reviews error:', error);
+    logger.error('Get note reviews error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -113,7 +114,7 @@ exports.getUserReview = async (req, res) => {
 
     res.json({ review: result.rows[0] });
   } catch (error) {
-    console.error('Get user review error:', error);
+    logger.error('Get user review error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -143,7 +144,7 @@ exports.deleteReview = async (req, res) => {
 
     res.json({ message: 'Review deleted successfully' });
   } catch (error) {
-    console.error('Delete review error:', error);
+    logger.error('Delete review error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

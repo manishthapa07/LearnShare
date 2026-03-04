@@ -1,5 +1,7 @@
 const { Pool } = require('pg');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../../.env') });
+const logger = require('../utils/logger');
 
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
@@ -13,11 +15,11 @@ const pool = new Pool({
 });
 
 pool.on('connect', () => {
-  console.log('Database connected successfully');
+  logger.success('Database connected successfully');
 });
 
 pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
+  logger.error('Unexpected error on idle client:', err.message);
   process.exit(-1);
 });
 

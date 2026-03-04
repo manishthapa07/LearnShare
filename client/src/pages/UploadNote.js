@@ -84,6 +84,23 @@ const UploadNote = () => {
   return (
     <div className="auth-container">
       <div className="auth-box" style={{ maxWidth: '700px' }}>
+        <button
+          onClick={() => navigate('/notes')}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'none',
+            border: 'none',
+            color: '#667eea',
+            fontSize: '0.95rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            padding: '0 0 16px 0',
+          }}
+        >
+          ← Back to Notes
+        </button>
         <h2>Upload Study Resource</h2>
         
         {/* Info Banner */}

@@ -1,60 +1,203 @@
 .notes-container {
   padding: 40px 20px;
-  max-width: 1200px;
+  max-width: 1300px;
   margin: 0 auto;
 }
 
 .notes-container h1 {
   text-align: center;
   color: #2c3e50;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
+  font-size: 2.5rem;
+  font-weight: 700;
 }
 
 .search-bar {
   display: flex;
-  gap: 10px;
-  margin-bottom: 30px;
+  gap: 15px;
+  margin-bottom: 40px;
   flex-wrap: wrap;
+  background: white;
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
 }
 
 .search-bar input {
   flex: 1;
   min-width: 200px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  padding: 12px 20px;
+  border: 2px solid #f0f0f0;
+  border-radius: 15px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: #a8edea;
+  box-shadow: 0 0 0 3px rgba(168, 237, 234, 0.1);
 }
 
 .notes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 25px;
 }
 
 .note-card {
   background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  padding: 25px;
+  border-radius: 20px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.note-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, #a8edea 0%, #fed6e3 100%);
+}
+
+.note-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
 }
 
 .note-card h3 {
   color: #2c3e50;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  font-size: 1.3rem;
+  font-weight: 600;
 }
 
 .btn-view {
   display: inline-block;
-  margin-top: 10px;
-  padding: 8px 16px;
-  background-color: #667eea;
+  margin-top: 15px;
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   text-decoration: none;
-  border-radius: 5px;
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .btn-view:hover {
-  background-color: #5568d3;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Tutor Card Specific Styles */
+.tutor-username {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.tutor-bio {
+  font-size: 14px;
+  margin-top: 10px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.tutor-expertise {
+  margin-top: 15px;
+}
+
+.tutor-expertise strong {
+  color: #2c3e50;
+  font-size: 0.9rem;
+}
+
+.expertise-tags {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.expertise-tag {
+  display: inline-block;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 5px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tutor-info-item {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #555;
+}
+
+.tutor-info-item strong {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.tutor-price {
+  font-size: 18px;
+  color: #28a745;
+  font-weight: 700;
+  margin-top: 15px;
+}
+
+.tutor-rating {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.tutor-rating .stars {
+  font-size: 16px;
+}
+
+.tutor-sessions-count {
+  margin-left: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.page-header h1 {
+  margin: 0;
+}
+
+.btn-submit {
+  padding: 12px 24px;
+  font-size: 16px;
+  background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+  color: white;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
 }
 
 /* Responsive Design */

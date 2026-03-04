@@ -2,28 +2,54 @@
 node_modules/
 client/node_modules/
 server/node_modules/
+package-lock.json
+client/package-lock.json
+server/package-lock.json
+yarn.lock
 
 # Environment variables
 .env
+.env.local
+.env.development
+.env.production
 client/.env
+client/.env.local
+client/.env.development
+client/.env.production
 server/.env
+server/.env.local
 
 # Build files
 client/build/
 dist/
+build/
 
-# Uploads
-server/uploads/
+# Uploads (ignore uploaded files but keep directory structure)
+server/uploads/*
+!server/uploads/.gitkeep
+server/uploads/notes/*
+!server/uploads/notes/.gitkeep
+server/uploads/payments/*
+!server/uploads/payments/.gitkeep
 
 # Logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
+logs/
+*.log.*
 
 # OS files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+Desktop.ini
 
 # IDE
 .vscode/
@@ -31,6 +57,31 @@ Thumbs.db
 *.swp
 *.swo
 *~
+*.sublime-project
+*.sublime-workspace
+.project
+.settings/
+*.code-workspace
 
 # Testing
 coverage/
+.nyc_output
+*.lcov
+.jest/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+.parcel-cache/
+
+# Database
+*.sql.backup
+*.db
+
+# Misc
+.eslintcache
+.env.test
+.vercel
+.next
+out/

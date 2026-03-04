@@ -47,5 +47,51 @@ export const classService = {
   getMyEnrolledClasses: async () => {
     const response = await api.get('/classes/student/enrolled');
     return response.data;
+  },
+
+  // Get pending enrollment requests (tutor)
+  getPendingEnrollments: async () => {
+    const response = await api.get('/classes/tutor/enrollment-requests');
+    return response.data;
+  },
+
+  // Approve enrollment request (tutor) - uses class payment details
+  approveEnrollment: async (enrollmentId) => {
+    const response = await api.post(`/classes/enrollment/${enrollmentId}/approve`);
+    return response.data;
+  },
+
+  // Reject enrollment request (tutor)
+  rejectEnrollment: async (enrollmentId, reason) => {
+    const response = await api.post(`/classes/enrollment/${enrollmentId}/reject`, { reason });
+    return response.data;
+  },
+
+  // Get enrollment payment details (student)
+  getEnrollmentPaymentDetails: async (enrollmentId) => {
+    const response = await api.get(`/classes/enrollment/${enrollmentId}/payment-details`);
+    return response.data;
+  },
+
+  // Submit enrollment payment (student)
+  submitEnrollmentPayment: async (enrollmentId, paymentFile) => {
+    const formData = new FormData();
+    formData.append('payment', paymentFile);
+    const response = await api.post(`/classes/enrollment/${enrollmentId}/submit-payment`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  },
+
+  // Get pending payment verifications (tutor)
+  getPendingPaymentVerifications: async () => {
+    const response = await api.get('/classes/tutor/payment-verifications');
+    return response.data;
+  },
+
+  // Verify enrollment payment (tutor)
+  verifyEnrollmentPayment: async (enrollmentId, approved, notes) => {
+    const response = await api.post(`/classes/enrollment/${enrollmentId}/verify-payment`, { approved, notes });
+    return response.data;
   }
 };

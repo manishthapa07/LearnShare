@@ -23,6 +23,7 @@ const SessionBooking = () => {
     if (tutorId) {
       fetchTutorProfile();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tutorId]);
 
   const fetchTutorProfile = async () => {
@@ -63,6 +64,23 @@ const SessionBooking = () => {
   return (
     <div className="auth-container">
       <div className="auth-box" style={{ maxWidth: '600px' }}>
+        <button
+          onClick={() => navigate(`/tutors/${tutorId}`)}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'none',
+            border: 'none',
+            color: '#667eea',
+            fontSize: '0.95rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            padding: '0 0 16px 0',
+          }}
+        >
+          ← Back to Tutor Profile
+        </button>
         <h2>Book a Tutoring Session</h2>
         
         {tutor && (

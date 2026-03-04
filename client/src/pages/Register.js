@@ -15,13 +15,90 @@ const Register = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [touched, setTouched] = useState({});
+  const [validationErrors, setValidationErrors] = useState({});
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  const validateField = (name, value) => {
+    let error = '';
+    
+    switch(name) {
+      case 'username':
+        if (value.length < 3) {
+          error = 'Username must be at least 3 characters';
+        } else if (!/^[a-zA-Z0-9_]+$/.test(value)) {
+          error = 'Username can only contain letters, numbers, and underscore';
+        }
+        break;
+      
+      case 'email':
+        if (!/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(value)) {
+          error = 'Please enter a valid email address';
+        }
+        break;
+      
+      case 'full_name':
+        if (value.length < 2) {
+          error = 'Full name must be at least 2 characters';
+        } else if (!/^[a-zA-Z ]+$/.test(value)) {
+          error = 'Full name can only contain letters and spaces';
+        }
+        break;
+      
+      case 'password':
+        if (value.length < 8) {
+          error = 'Password must be at least 8 characters';
+        } else if (!/[A-Z]/.test(value)) {
+          error = 'Password must contain at least one uppercase letter';
+        } else if (!/[0-9]/.test(value)) {
+          error = 'Password must contain at least one number';
+        } else if (!/[!@#$%^&*]/.test(value)) {
+          error = 'Password must contain at least one symbol (!@#$%^&*)';
+        }
+        break;
+      
+      case 'mobile':
+        if (!/^[0-9]{10}$/.test(value)) {
+          error = 'Mobile number must be exactly 10 digits';
+        }
+        break;
+      
+      default:
+        break;
+    }
+    
+    return error;
+  };
+
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
+    });
+    
+    // Validate if field has been touched
+    if (touched[name]) {
+      const error = validateField(name, value);
+      setValidationErrors({
+        ...validationErrors,
+        [name]: error
+      });
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setTouched({
+      ...touched,
+      [name]: true
+    });
+    
+    const error = validateField(name, value);
+    setValidationErrors({
+      ...validationErrors,
+      [name]: error
     });
   };
 
@@ -54,13 +131,15 @@ const Register = () => {
               name="username"
               value={formData.username}
               onChange={handleChange}
+              onBlur={handleBlur}
               required
-              minLength="3"
-              pattern="[a-zA-Z0-9_]{3,}"
-              title="Username must be at least 3 characters (letters, numbers, underscore only)"
               placeholder="Choose a username"
             />
-            <small style={{ color: '#666', fontSize: '12px' }}>At least 3 characters (letters, numbers, underscore)</small>
+            {touched.username && validationErrors.username && (
+              <small style={{ color: '#e74c3c', fontSize: '12px', display: 'block', marginTop: '4px' }}>
+                {validationErrors.username}
+              </small>
+            )}
           </div>
 
           <div className="form-group">
@@ -70,11 +149,15 @@ const Register = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
+              onBlur={handleBlur}
               required
-              pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-              title="Please enter a valid email address"
               placeholder="Enter your email"
             />
+            {touched.email && validationErrors.email && (
+              <small style={{ color: '#e74c3c', fontSize: '12px', display: 'block', marginTop: '4px' }}>
+                {validationErrors.email}
+              </small>
+            )}
           </div>
 
           <div className="form-group">
@@ -84,12 +167,15 @@ const Register = () => {
               name="full_name"
               value={formData.full_name}
               onChange={handleChange}
+              onBlur={handleBlur}
               required
-              minLength="2"
-              pattern="[a-zA-Z ]{2,}"
-              title="Please enter your full name (letters and spaces only)"
               placeholder="Enter your full name"
             />
+            {touched.full_name && validationErrors.full_name && (
+              <small style={{ color: '#e74c3c', fontSize: '12px', display: 'block', marginTop: '4px' }}>
+                {validationErrors.full_name}
+              </small>
+            )}
           </div>
 
           <div className="form-group">
@@ -99,13 +185,15 @@ const Register = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
+              onBlur={handleBlur}
               required
-              minLength="6"
-              pattern=".{6,}"
-              title="Password must be at least 6 characters long"
-              placeholder="Choose a password (min 6 characters)"
+              placeholder="Choose a password (min 8 characters)"
             />
-            <small style={{ color: '#666', fontSize: '12px' }}>Must be at least 6 characters</small>
+            {touched.password && validationErrors.password && (
+              <small style={{ color: '#e74c3c', fontSize: '12px', display: 'block', marginTop: '4px' }}>
+                {validationErrors.password}
+              </small>
+            )}
           </div>
 
           <div className="form-group">
@@ -115,12 +203,15 @@ const Register = () => {
               name="mobile"
               value={formData.mobile}
               onChange={handleChange}
+              onBlur={handleBlur}
               required
-              pattern="[0-9]{10}"
-              title="Please enter a valid 10-digit mobile number"
               placeholder="Enter your mobile number (10 digits)"
             />
-            <small style={{ color: '#666', fontSize: '12px' }}>10-digit mobile number</small>
+            {touched.mobile && validationErrors.mobile && (
+              <small style={{ color: '#e74c3c', fontSize: '12px', display: 'block', marginTop: '4px' }}>
+                {validationErrors.mobile}
+              </small>
+            )}
           </div>
 
           <div className="form-group">

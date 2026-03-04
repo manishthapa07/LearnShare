@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const logger = require('../utils/logger');
 const path = require('path');
 const fs = require('fs').promises;
 
@@ -37,7 +38,7 @@ exports.uploadNote = async (req, res) => {
       note: result.rows[0]
     });
   } catch (error) {
-    console.error('Upload note error:', error);
+    logger.error('Upload note error:', error);
     res.status(500).json({ error: 'Server error during note upload' });
   }
 };
@@ -122,7 +123,7 @@ exports.getAllNotes = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get notes error:', error);
+    logger.error('Get notes error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -158,7 +159,7 @@ exports.getNote = async (req, res) => {
 
     res.json({ note, hasPurchased });
   } catch (error) {
-    console.error('Get note error:', error);
+    logger.error('Get note error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -205,10 +206,23 @@ exports.downloadNote = async (req, res) => {
     // Increment download count
     await pool.query('UPDATE notes SET downloads = downloads + 1 WHERE id = $1', [id]);
 
+    // Construct absolute file path
+    const filePath = path.isAbsolute(note.file_path) 
+      ? note.file_path 
+      : path.join(__dirname, '../../', note.file_path);
+
+    // Check if file exists
+    try {
+      await fs.access(filePath);
+    } catch (err) {
+      logger.error('File not found:', filePath);
+      return res.status(404).json({ error: 'File not found on server' });
+    }
+
     // Send file
-    res.download(note.file_path, note.file_name);
+    res.download(filePath, note.file_name);
   } catch (error) {
-    console.error('Download note error:', error);
+    logger.error('Download note error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -223,7 +237,7 @@ exports.getUserNotes = async (req, res) => {
 
     res.json({ notes: result.rows });
   } catch (error) {
-    console.error('Get user notes error:', error);
+    logger.error('Get user notes error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -250,7 +264,7 @@ exports.deleteNote = async (req, res) => {
     try {
       await fs.unlink(note.file_path);
     } catch (err) {
-      console.error('Error deleting file:', err);
+      logger.error('Error deleting file:', err);
     }
 
     // Delete from database
@@ -258,7 +272,7 @@ exports.deleteNote = async (req, res) => {
 
     res.json({ message: 'Note deleted successfully' });
   } catch (error) {
-    console.error('Delete note error:', error);
+    logger.error('Delete note error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -308,7 +322,7 @@ exports.updateNote = async (req, res) => {
       note: result.rows[0]
     });
   } catch (error) {
-    console.error('Update note error:', error);
+    logger.error('Update note error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -329,7 +343,7 @@ exports.getPurchasedNotes = async (req, res) => {
 
     res.json({ notes: result.rows });
   } catch (error) {
-    console.error('Get purchased notes error:', error);
+    logger.error('Get purchased notes error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
@@ -32,7 +32,11 @@ const MyClasses = lazy(() => import('./pages/MyClasses'));
 const ClassDetail = lazy(() => import('./pages/ClassDetail'));
 const BrowseClasses = lazy(() => import('./pages/BrowseClasses'));
 const EditClass = lazy(() => import('./pages/EditClass'));
+const EnrollmentRequests = lazy(() => import('./pages/EnrollmentRequests'));
+const EnrollmentPayment = lazy(() => import('./pages/EnrollmentPayment'));
+const PaymentVerification = lazy(() => import('./pages/PaymentVerification'));
 const MyPurchasedNotes = lazy(() => import('./pages/MyPurchasedNotes'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 function App() {
   return (
@@ -80,11 +84,14 @@ function App() {
               <Route path="/reminders" element={<PrivateRoute><Reminders /></PrivateRoute>} />
               <Route path="/create-class" element={<PrivateRoute><CreateClass /></PrivateRoute>} />
               <Route path="/my-classes" element={<PrivateRoute><MyClasses /></PrivateRoute>} />
+              <Route path="/classes" element={<BrowseClasses />} />
+              <Route path="/enrollment-requests" element={<PrivateRoute><EnrollmentRequests /></PrivateRoute>} />
+              <Route path="/enrollment-payment/:enrollmentId" element={<PrivateRoute><EnrollmentPayment /></PrivateRoute>} />
+              <Route path="/payment-verifications" element={<PrivateRoute><PaymentVerification /></PrivateRoute>} />
               <Route path="/class/:id" element={<PrivateRoute><ClassDetail /></PrivateRoute>} />
               <Route path="/edit-class/:id" element={<PrivateRoute><EditClass /></PrivateRoute>} />
-              <Route path="/classes" element={<PrivateRoute><BrowseClasses /></PrivateRoute>} />
               
-              <Route path="*" element={<Navigate to="/" />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
             </Suspense>
           </main>

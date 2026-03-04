@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { classService } from '../services/classService';
 import { useAuth } from '../context/AuthContext';
+import Modal from '../components/Modal';
 import './Notes.css';
 
 const BrowseClasses = () => {
@@ -12,6 +13,7 @@ const BrowseClasses = () => {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [modal, setModal] = useState({ show: false, message: '', type: 'info', showCancel: false, onConfirm: null });
 
   useEffect(() => {
     fetchClasses();
@@ -30,17 +32,20 @@ const BrowseClasses = () => {
   };
 
   const handleEnroll = async (classId) => {
-    if (!window.confirm('Are you sure you want to enroll in this class? All sessions will be created automatically.')) {
-      return;
-    }
-
-    try {
-      const result = await classService.enrollInClass(classId);
-      alert(result.message || 'Enrolled successfully!');
-      navigate('/my-sessions');
-    } catch (err) {
-      alert(err.response?.data?.error || 'Failed to enroll in class');
-    }
+    setModal({
+      show: true,
+      message: 'Are you sure you want to send an enrollment request for this class? The tutor will need to approve your request before sessions are created.',
+      type: 'confirm',
+      showCancel: true,
+      onConfirm: async () => {
+        try {
+          const result = await classService.enrollInClass(classId);
+          setModal({ show: true, message: result.message || 'Enrollment request sent successfully! Waiting for tutor approval.', type: 'success', showCancel: false });
+        } catch (err) {
+          setModal({ show: true, message: err.response?.data?.error || 'Failed to send enrollment request', type: 'error', showCancel: false });
+        }
+      }
+    });
   };
 
   const getDaysList = (days) => {
@@ -343,6 +348,20 @@ const BrowseClasses = () => {
           </p>
         </div>
       )}
+
+      <Modal
+        show={modal.show}
+        message={modal.message}
+        type={modal.type}
+        showCancel={modal.showCancel}
+        onConfirm={modal.onConfirm}
+        onClose={() => {
+          setModal({ show: false, message: '', type: 'info', showCancel: false, onConfirm: null });
+          if (modal.type === 'success') {
+            navigate('/my-sessions');
+          }
+        }}
+      />
     </div>
   );
 };

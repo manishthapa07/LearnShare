@@ -31,6 +31,12 @@ export const authService = {
 
   updateProfile: async (profileData) => {
     const response = await api.put('/auth/profile', profileData);
+    // Keep localStorage in sync so AuthContext stays fresh
+    if (response.data.user) {
+      const stored = localStorage.getItem('user');
+      const current = stored ? JSON.parse(stored) : {};
+      localStorage.setItem('user', JSON.stringify({ ...current, ...response.data.user }));
+    }
     return response.data;
   },
 

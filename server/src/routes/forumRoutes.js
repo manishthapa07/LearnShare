@@ -13,5 +13,6 @@ router.post('/questions/:id/vote', authMiddleware, forumController.voteQuestion)
 router.post('/answers', authMiddleware, forumController.createAnswer);
 router.post('/answers/:id/accept', authMiddleware, forumController.acceptAnswer);
 router.post('/answers/:id/vote', authMiddleware, forumController.voteAnswer);
+router.post('/answers/:id/rate', authMiddleware, forumController.rateAnswer);
 
 module.exports = router;
