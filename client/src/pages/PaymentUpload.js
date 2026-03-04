@@ -24,6 +24,7 @@ const PaymentUpload = () => {
     if (noteId) {
       fetchNoteDetails();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [noteId]);
 
   const fetchNoteDetails = async () => {
@@ -104,6 +105,23 @@ const PaymentUpload = () => {
   return (
     <div className="auth-container">
       <div className="auth-box" style={{ maxWidth: '600px' }}>
+        <button
+          onClick={() => navigate(noteId ? `/notes/${noteId}` : '/notes')}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'none',
+            border: 'none',
+            color: '#667eea',
+            fontSize: '0.95rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            padding: '0 0 16px 0',
+          }}
+        >
+          ← Back to Note
+        </button>
         <h2>Submit Payment</h2>
         
         {note && (

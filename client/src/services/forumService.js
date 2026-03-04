@@ -11,8 +11,10 @@ export const forumService = {
     return response.data;
   },
 
-  getQuestion: async (id) => {
-    const response = await api.get(`/forum/questions/${id}`);
+  getQuestion: async (id, incrementView = false) => {
+    const response = await api.get(`/forum/questions/${id}`, {
+      params: { incrementView: incrementView ? 'true' : 'false' }
+    });
     return response.data;
   },
 
@@ -33,6 +35,11 @@ export const forumService = {
 
   voteAnswer: async (id, vote) => {
     const response = await api.post(`/forum/answers/${id}/vote`, { vote });
+    return response.data;
+  },
+
+  rateAnswer: async (id, rating) => {
+    const response = await api.post(`/forum/answers/${id}/rate`, { rating });
     return response.data;
   }
 };

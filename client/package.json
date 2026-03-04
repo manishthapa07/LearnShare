@@ -1,7 +1,10 @@
 {
-  "name": "client",
-  "version": "0.1.0",
+  "name": "learnshare-client",
+  "version": "1.0.0",
+  "description": "LearnShare frontend - Educational platform React application",
   "private": true,
+  "author": "LearnShare Team",
+  "license": "ISC",
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",

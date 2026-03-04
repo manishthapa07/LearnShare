@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { classService } from '../services/classService';
+import Modal from '../components/Modal';
 import './Notes.css';
 
 const EditClass = () => {
@@ -9,6 +10,7 @@ const EditClass = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [modal, setModal] = useState({ show: false, message: '', type: 'info' });
   const [formData, setFormData] = useState({
     title: '',
     subject: '',
@@ -29,6 +31,7 @@ const EditClass = () => {
 
   useEffect(() => {
     fetchClassDetails();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchClassDetails = async () => {
@@ -77,28 +80,26 @@ const EditClass = () => {
     
     // Validation
     if (!formData.title || !formData.subject) {
-      alert('Please fill in title and subject');
+      setModal({ show: true, message: 'Please fill in title and subject', type: 'warning' });
       return;
     }
 
     if (formData.class_type === 'monthly' && !formData.monthly_fee) {
-      alert('Please enter monthly fee for monthly classes');
+      setModal({ show: true, message: 'Please enter monthly fee for monthly classes', type: 'warning' });
       return;
     }
 
     if (formData.class_type === 'hourly' && !formData.hourly_rate) {
-      alert('Please enter hourly rate for hourly classes');
+      setModal({ show: true, message: 'Please enter hourly rate for hourly classes', type: 'warning' });
       return;
     }
 
     setSubmitting(true);
     try {
       await classService.updateClass(id, formData);
-      alert('Class updated successfully!');
-      navigate(`/class/${id}`);
+      setModal({ show: true, message: 'Class updated successfully!', type: 'success' });
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to update class');
-    } finally {
+      setModal({ show: true, message: err.response?.data?.error || 'Failed to update class', type: 'error' });
       setSubmitting(false);
     }
   };
@@ -127,6 +128,23 @@ const EditClass = () => {
 
   return (
     <div className="notes-container">
+      <button
+        onClick={() => navigate(`/classes/${id}`)}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          background: 'none',
+          border: 'none',
+          color: '#667eea',
+          fontSize: '0.95rem',
+          fontWeight: '600',
+          cursor: 'pointer',
+          padding: '0 0 16px 0',
+        }}
+      >
+        ← Back to Class
+      </button>
       <h1>✏️ Edit Class</h1>
 
       <form onSubmit={handleSubmit} style={{
@@ -458,6 +476,19 @@ const EditClass = () => {
           </button>
         </div>
       </form>
+
+      <Modal
+        show={modal.show}
+        message={modal.message}
+        type={modal.type}
+        onClose={() => {
+          setModal({ show: false, message: '', type: 'info' });
+          if (modal.type === 'success') {
+            setSubmitting(false);
+            navigate(`/class/${id}`);
+          }
+        }}
+      />
     </div>
   );
 };

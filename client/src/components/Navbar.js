@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { notificationService } from '../services/notificationService';
 import './Navbar.css';
 
 const Navbar = () => {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -63,23 +64,27 @@ const Navbar = () => {
       fetchUnreadCount();
     }
     setShowDropdown(false);
-    
+
     // Navigate based on notification type
-    if (notification.type === 'payment_request') {
-      window.location.href = '/my-payments';
-    } else if (notification.type === 'session_booking') {
-      window.location.href = '/my-sessions';
-    } else if (notification.type === 'session_payment') {
-      window.location.href = '/session-payments-review';
-    } else if (notification.type === 'session_confirmed' || notification.type === 'session_cancelled') {
-      window.location.href = '/my-sessions';
-    } else if (notification.type === 'payment_review') {
-      window.location.href = '/my-payments';
-    } else if (notification.type === 'class_enrollment') {
-      window.location.href = '/my-class-sessions';
-    } else if (notification.type === 'class_review') {
-      window.location.href = '/my-class-sessions';
-    }
+    const routes = {
+      payment_request:      '/my-payments',
+      session_booking:      '/my-sessions',
+      session_payment:      '/session-payments-review',
+      session_confirmed:    '/my-sessions',
+      session_cancelled:    '/my-sessions',
+      payment_review:       '/my-payments',
+      enrollment_request:   '/enrollment-requests',
+      enrollment_approved:  '/my-classes',
+      enrollment_rejected:  '/my-class-sessions',
+      payment_submitted:    '/payment-verifications',
+      payment_verified:     '/my-class-sessions',
+      payment_rejected:     '/my-classes',
+      class_enrollment:     '/my-class-sessions',
+      class_review:         '/my-class-sessions',
+    };
+
+    const dest = routes[notification.type];
+    if (dest) navigate(dest);
   };
 
   const handleMarkAllRead = async () => {
@@ -91,9 +96,11 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="nav-container">
-        <Link to="/" className="nav-logo">
-          <img src="/LearnShare LOGO og.png" alt="LearnShare" className="logo-image" />
-        </Link>
+        <div className="nav-left">
+          <Link to="/" className="nav-logo">
+            <img src="/LearnShare LOGO og.png" alt="LearnShare" className="logo-image" />
+          </Link>
+        </div>
         
         <ul className="nav-menu">
           <li className="nav-item">
@@ -112,9 +119,6 @@ const Navbar = () => {
           {isAuthenticated ? (
             <>
               <li className="nav-item">
-                <Link to="/profile" className="nav-link">Profile</Link>
-              </li>
-              <li className="nav-item">
                 <Link to="/reminders" className="nav-link">Reminders</Link>
               </li>
               <li className="nav-item">
@@ -123,6 +127,11 @@ const Navbar = () => {
               {user?.role === 'admin' && (
                 <li className="nav-item">
                   <Link to="/admin/payments" className="nav-link">Admin</Link>
+                </li>
+              )}
+              {user?.role === 'tutor' && (
+                <li className="nav-item">
+                  <Link to="/payment-verifications" className="nav-link">Verify Payments</Link>
                 </li>
               )}
               
@@ -166,11 +175,10 @@ const Navbar = () => {
                   </div>
                 )}
               </li>
-              
+
+              {/* Profile at the end */}
               <li className="nav-item">
-                <button onClick={logout} className="nav-link btn-logout">
-                  Logout ({user?.username})
-                </button>
+                <Link to="/profile" className="nav-link profile-nav-link">👤 {user?.username}</Link>
               </li>
             </>
           ) : (

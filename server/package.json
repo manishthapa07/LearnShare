@@ -1,21 +1,31 @@
 {
-  "name": "server",
+  "name": "learnshare-server",
   "version": "1.0.0",
+  "description": "LearnShare backend API - Educational platform connecting students with tutors",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint src/**/*.js",
+    "check-health": "node -e \"require('http').get('http://localhost:5000/api/health', res => console.log('Status:', res.statusCode))\""
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "education",
+    "learning",
+    "tutoring",
+    "api",
+    "express",
+    "postgresql"
+  ],
+  "author": "LearnShare Team",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
     "express-validator": "^7.3.1",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",

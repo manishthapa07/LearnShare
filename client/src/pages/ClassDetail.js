@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { classService } from '../services/classService';
 import { useAuth } from '../context/AuthContext';
+import Modal from '../components/Modal';
 import './Notes.css';
 
 const ClassDetail = () => {
@@ -12,9 +13,11 @@ const ClassDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [enrolling, setEnrolling] = useState(false);
+  const [modal, setModal] = useState({ show: false, message: '', type: 'info', showCancel: false, onConfirm: null });
 
   useEffect(() => {
     fetchClassDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchClassDetails = async () => {
@@ -29,20 +32,22 @@ const ClassDetail = () => {
   };
 
   const handleEnroll = async () => {
-    if (!window.confirm('Are you sure you want to enroll in this class? All sessions will be created automatically.')) {
-      return;
-    }
-
-    setEnrolling(true);
-    try {
-      const result = await classService.enrollInClass(id);
-      alert(result.message || 'Enrolled successfully!');
-      navigate('/my-class-sessions');
-    } catch (err) {
-      alert(err.response?.data?.error || 'Failed to enroll in class');
-    } finally {
-      setEnrolling(false);
-    }
+    setModal({
+      show: true,
+      message: 'Are you sure you want to send an enrollment request for this class? The tutor will need to approve your request before sessions are created.',
+      type: 'confirm',
+      showCancel: true,
+      onConfirm: async () => {
+        setEnrolling(true);
+        try {
+          const result = await classService.enrollInClass(id);
+          setModal({ show: true, message: result.message || 'Enrollment request sent successfully! Waiting for tutor approval.', type: 'success', showCancel: false });
+        } catch (err) {
+          setModal({ show: true, message: err.response?.data?.error || 'Failed to send enrollment request', type: 'error', showCancel: false });
+          setEnrolling(false);
+        }
+      }
+    });
   };
 
   const calculateDuration = (startTime, endTime) => {
@@ -84,18 +89,21 @@ const ClassDetail = () => {
   return (
     <div className="notes-container">
       <button
-        onClick={() => navigate(-1)}
+        onClick={() => navigate('/classes')}
         style={{
-          padding: '8px 16px',
-          backgroundColor: '#6c757d',
-          color: 'white',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          background: 'none',
           border: 'none',
-          borderRadius: '5px',
+          color: '#667eea',
+          fontSize: '0.95rem',
+          fontWeight: '600',
           cursor: 'pointer',
-          marginBottom: '20px'
+          padding: '0 0 16px 0',
         }}
       >
-        ← Back
+        ← Back to Classes
       </button>
 
       <div style={{
@@ -303,6 +311,21 @@ const ClassDetail = () => {
           )}
         </div>
       </div>
+
+      <Modal
+        show={modal.show}
+        message={modal.message}
+        type={modal.type}
+        showCancel={modal.showCancel}
+        onConfirm={modal.onConfirm}
+        onClose={() => {
+          setModal({ show: false, message: '', type: 'info', showCancel: false, onConfirm: null });
+          if (modal.type === 'success') {
+            setEnrolling(false);
+            navigate('/my-class-sessions');
+          }
+        }}
+      />
     </div>
   );
 };

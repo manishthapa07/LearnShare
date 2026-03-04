@@ -95,6 +95,37 @@ CREATE TABLE IF NOT EXISTS answers (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Answer Ratings Table (1-5 stars)
+CREATE TABLE IF NOT EXISTS answer_ratings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    answer_id UUID NOT NULL REFERENCES answers(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(answer_id, user_id)
+);
+
+-- Question Votes Tracking Table
+CREATE TABLE IF NOT EXISTS question_votes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    question_id UUID NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    vote_type INTEGER NOT NULL CHECK (vote_type IN (-1, 0, 1)),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(question_id, user_id)
+);
+
+-- Answer Votes Tracking Table
+CREATE TABLE IF NOT EXISTS answer_votes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    answer_id UUID NOT NULL REFERENCES answers(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    vote_type INTEGER NOT NULL CHECK (vote_type IN (-1, 0, 1)),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(answer_id, user_id)
+);
+
 -- Session Bookings Table
 CREATE TABLE IF NOT EXISTS session_bookings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -159,6 +190,12 @@ CREATE INDEX IF NOT EXISTS idx_payments_user ON payments(user_id);
 CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
 CREATE INDEX IF NOT EXISTS idx_questions_user ON questions(user_id);
 CREATE INDEX IF NOT EXISTS idx_answers_question ON answers(question_id);
+CREATE INDEX IF NOT EXISTS idx_answer_ratings_answer ON answer_ratings(answer_id);
+CREATE INDEX IF NOT EXISTS idx_answer_ratings_user ON answer_ratings(user_id);
+CREATE INDEX IF NOT EXISTS idx_question_votes_question ON question_votes(question_id);
+CREATE INDEX IF NOT EXISTS idx_question_votes_user ON question_votes(user_id);
+CREATE INDEX IF NOT EXISTS idx_answer_votes_answer ON answer_votes(answer_id);
+CREATE INDEX IF NOT EXISTS idx_answer_votes_user ON answer_votes(user_id);
 CREATE INDEX IF NOT EXISTS idx_session_bookings_student ON session_bookings(student_id);
 CREATE INDEX IF NOT EXISTS idx_session_bookings_tutor ON session_bookings(tutor_id);
 CREATE INDEX IF NOT EXISTS idx_reminders_user ON reminders(user_id);
@@ -191,6 +228,9 @@ CREATE TRIGGER update_questions_updated_at BEFORE UPDATE ON questions
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_answers_updated_at BEFORE UPDATE ON answers
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_answer_ratings_updated_at BEFORE UPDATE ON answer_ratings
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_session_bookings_updated_at BEFORE UPDATE ON session_bookings

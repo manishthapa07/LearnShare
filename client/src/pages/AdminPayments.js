@@ -19,6 +19,7 @@ const AdminPayments = () => {
       return;
     }
     fetchPayments();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter, user]);
 
   const fetchPayments = async () => {
