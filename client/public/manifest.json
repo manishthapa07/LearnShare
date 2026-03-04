@@ -3,17 +3,17 @@
   "name": "LearnShare - Knowledge Sharing Platform",
   "icons": [
     {
-      "src": "LearnShare LOGO.png",
+      "src": "LearnShare LOGO og.png",
       "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/png"
+      "type": "image/x-icon"
     },
     {
-      "src": "LearnShare LOGO.png",
+      "src": "LearnShare LOGO og.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "LearnShare LOGO.png",
+      "src": "LearnShare LOGO og.png",
       "type": "image/png",
       "sizes": "512x512"
     }

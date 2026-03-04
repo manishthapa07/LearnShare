@@ -1,11 +1,13 @@
 const { Pool } = require('pg');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../../.env') });
+const logger = require('../utils/logger');
 
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 5432,
   user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD,
+  password: String(process.env.DB_PASSWORD || ''),
   database: process.env.DB_NAME || 'learnshare',
   max: 20,
   idleTimeoutMillis: 30000,
@@ -13,11 +15,11 @@ const pool = new Pool({
 });
 
 pool.on('connect', () => {
-  console.log('Database connected successfully');
+  logger.success('Database connected successfully');
 });
 
 pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
+  logger.error('Unexpected error on idle client:', err.message);
   process.exit(-1);
 });
 

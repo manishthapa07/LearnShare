@@ -1,4 +1,6 @@
 const pool = require('../config/database');
+const { createNotification } = require('./notificationController');
+const logger = require('../utils/logger');
 
 // Submit Payment
 exports.submitPayment = async (req, res) => {
@@ -9,19 +11,51 @@ exports.submitPayment = async (req, res) => {
       return res.status(400).json({ error: 'Payment screenshot is required' });
     }
 
+    // Normalize path for URLs (replace backslashes with forward slashes)
+    const screenshotPath = req.file.path.replace(/\\/g, '/');
+
     const result = await pool.query(
       `INSERT INTO payments (user_id, note_id, amount, screenshot_path, transaction_reference, status)
        VALUES ($1, $2, $3, $4, $5, 'pending')
        RETURNING *`,
-      [req.user.id, note_id, amount, req.file.path, transaction_reference || null]
+      [req.user.id, note_id, amount, screenshotPath, transaction_reference || null]
     );
+
+    const payment = result.rows[0];
+
+    // Get note details and uploader
+    const noteResult = await pool.query(
+      `SELECT n.title, n.uploader_id, u.username as buyer_username 
+       FROM notes n 
+       JOIN users u ON u.id = $1
+       WHERE n.id = $2`,
+      [req.user.id, note_id]
+    );
+
+    if (noteResult.rows.length > 0) {
+      const note = noteResult.rows[0];
+      
+      logger.debug(`Creating payment notification for uploader ${note.uploader_id}`);
+      
+      // Notify the note uploader about new payment
+      await createNotification(
+        note.uploader_id,
+        'payment_request',
+        `New payment of NPR ${amount} from ${note.buyer_username} for "${note.title}"`,
+        payment.id
+      );
+      
+      logger.debug('Payment notification created successfully');
+    } else {
+      logger.debug('No note found for notification');
+    }
 
     res.status(201).json({
       message: 'Payment submitted successfully. Awaiting admin approval.',
-      payment: result.rows[0]
+      payment
     });
   } catch (error) {
-    console.error('Submit payment error:', error);
+    logger.error('Submit payment error:', error);
     res.status(500).json({ error: 'Server error during payment submission' });
   }
 };
@@ -40,7 +74,7 @@ exports.getUserPayments = async (req, res) => {
 
     res.json({ payments: result.rows });
   } catch (error) {
-    console.error('Get user payments error:', error);
+    logger.error('Get user payments error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -69,12 +103,12 @@ exports.getAllPayments = async (req, res) => {
 
     res.json({ payments: result.rows });
   } catch (error) {
-    console.error('Get all payments error:', error);
+    logger.error('Get all payments error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
 
-// Approve/Reject Payment (Admin)
+// Approve/Reject Payment (Admin or Note Uploader)
 exports.updatePaymentStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -84,6 +118,31 @@ exports.updatePaymentStatus = async (req, res) => {
       return res.status(400).json({ error: 'Invalid status' });
     }
 
+    // Get payment with note details
+    const paymentCheck = await pool.query(
+      `SELECT p.*, n.uploader_id 
+       FROM payments p
+       LEFT JOIN notes n ON p.note_id = n.id
+       WHERE p.id = $1`,
+      [id]
+    );
+
+    if (paymentCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Payment not found' });
+    }
+
+    const paymentData = paymentCheck.rows[0];
+
+    // Check authorization: Admin OR note uploader can approve
+    const isAdmin = req.user.role === 'admin';
+    const isUploader = paymentData.uploader_id === req.user.id;
+
+    logger.debug(`Payment ${id} - User: ${req.user.id}, isAdmin: ${isAdmin}, isUploader: ${isUploader}`);
+
+    if (!isAdmin && !isUploader) {
+      return res.status(403).json({ error: 'Not authorized to update this payment' });
+    }
+
     const result = await pool.query(
       `UPDATE payments 
        SET status = $1, admin_notes = $2, approved_by = $3
@@ -91,10 +150,6 @@ exports.updatePaymentStatus = async (req, res) => {
        RETURNING *`,
       [status, admin_notes || null, req.user.id, id]
     );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Payment not found' });
-    }
 
     const payment = result.rows[0];
 
@@ -108,12 +163,64 @@ exports.updatePaymentStatus = async (req, res) => {
       );
     }
 
-    res.json({
+    res.json({ 
       message: `Payment ${status} successfully`,
       payment: result.rows[0]
     });
   } catch (error) {
-    console.error('Update payment status error:', error);
+    logger.error('Update payment status error:', error.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Get Payments for Uploader's Notes
+exports.getUploaderPayments = async (req, res) => {
+  try {
+    const { status } = req.query;
+
+    logger.debug(`User ${req.user.id} fetching uploader payments`);
+
+    let query = `
+      SELECT p.*, u.username as buyer_username, u.email as buyer_email, 
+             u.full_name as buyer_name, n.title as note_title, n.id as note_id
+      FROM payments p
+      JOIN users u ON p.user_id = u.id
+      JOIN notes n ON p.note_id = n.id
+      WHERE n.uploader_id = $1
+    `;
+
+    const params = [req.user.id];
+
+    if (status) {
+      query += ' AND p.status = $2';
+      params.push(status);
+    }
+
+    query += ' ORDER BY p.created_at DESC';
+
+    const result = await pool.query(query, params);
+
+    logger.debug(`Found ${result.rows.length} payments for uploader`);
+
+    // Get summary stats
+    const statsResult = await pool.query(
+      `SELECT 
+        COUNT(*) as total_payments,
+        COUNT(*) FILTER (WHERE status = 'approved') as approved_count,
+        COUNT(*) FILTER (WHERE status = 'pending') as pending_count,
+        COALESCE(SUM(amount) FILTER (WHERE status = 'approved'), 0) as total_earnings
+       FROM payments p
+       JOIN notes n ON p.note_id = n.id
+       WHERE n.uploader_id = $1`,
+      [req.user.id]
+    );
+
+    res.json({ 
+      payments: result.rows,
+      stats: statsResult.rows[0]
+    });
+  } catch (error) {
+    logger.error('Get uploader payments error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

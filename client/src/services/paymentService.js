@@ -13,6 +13,11 @@ export const paymentService = {
     return response.data;
   },
 
+  getUploaderPayments: async (status) => {
+    const response = await api.get('/payments/my-note-payments', { params: { status } });
+    return response.data;
+  },
+
   getAllPayments: async (status) => {
     const response = await api.get('/payments/all', { params: { status } });
     return response.data;

@@ -1,10 +1,13 @@
 const multer = require('multer');
 const path = require('path');
 
+// Upload directory path
+const uploadDir = path.join(__dirname, '../../uploads');
+
 // Storage for note files
 const noteStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/notes/');
+    cb(null, path.join(uploadDir, 'notes'));
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -15,7 +18,7 @@ const noteStorage = multer.diskStorage({
 // Storage for payment screenshots
 const paymentStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/payments/');
+    cb(null, path.join(uploadDir, 'payments'));
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
