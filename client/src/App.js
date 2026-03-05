@@ -16,6 +16,7 @@ const NoteDetail = lazy(() => import('./pages/NoteDetail'));
 const PaymentUpload = lazy(() => import('./pages/PaymentUpload'));
 const MyPayments = lazy(() => import('./pages/MyPayments'));
 const AdminPayments = lazy(() => import('./pages/AdminPayments'));
+const Admin = lazy(() => import('./pages/Admin'));
 const Forum = lazy(() => import('./pages/Forum'));
 const QuestionDetail = lazy(() => import('./pages/QuestionDetail'));
 const CreateQuestion = lazy(() => import('./pages/CreateQuestion'));
@@ -37,6 +38,8 @@ const EnrollmentPayment = lazy(() => import('./pages/EnrollmentPayment'));
 const PaymentVerification = lazy(() => import('./pages/PaymentVerification'));
 const MyPurchasedNotes = lazy(() => import('./pages/MyPurchasedNotes'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 
 function App() {
   return (
@@ -61,6 +64,8 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password/:token" element={<ResetPassword />} />
               <Route path="/notes" element={<Notes />} />
               <Route path="/notes/:id" element={<NoteDetail />} />
               <Route path="/forum" element={<Forum />} />
@@ -74,6 +79,7 @@ function App() {
               <Route path="/payment-upload" element={<PrivateRoute><PaymentUpload /></PrivateRoute>} />
               <Route path="/my-payments" element={<PrivateRoute><MyPayments /></PrivateRoute>} />
               <Route path="/my-purchased-notes" element={<PrivateRoute><MyPurchasedNotes /></PrivateRoute>} />
+              <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
               <Route path="/admin/payments" element={<PrivateRoute><AdminPayments /></PrivateRoute>} />
               <Route path="/forum/create" element={<PrivateRoute><CreateQuestion /></PrivateRoute>} />
               <Route path="/session-booking/:tutorId" element={<PrivateRoute><SessionBooking /></PrivateRoute>} />

@@ -1,0 +1,249 @@
+/* ── Overlay ─────────────────────────────────────────────────────────────── */
+.report-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  padding: 16px;
+}
+
+/* ── Modal Box ───────────────────────────────────────────────────────────── */
+.report-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.report-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.report-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0;
+}
+
+.report-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #999;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  line-height: 1;
+  transition: background 0.15s;
+}
+
+.report-close:hover {
+  background: #f0f2f5;
+  color: #555;
+}
+
+.report-subtitle {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 20px;
+}
+
+.report-session-tag {
+  color: #667eea;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ── Error ───────────────────────────────────────────────────────────────── */
+.report-error {
+  background: #fed7d7;
+  color: #742a2a;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+/* ── Form Fields ─────────────────────────────────────────────────────────── */
+.report-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.report-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.report-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2d3748;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.report-char-count {
+  font-size: 12px;
+  font-weight: 400;
+  color: #999;
+}
+
+/* ── Type Grid ───────────────────────────────────────────────────────────── */
+.report-type-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.report-type-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  color: #4a5568;
+  user-select: none;
+}
+
+.report-type-option input[type="radio"] {
+  accent-color: #e53e3e;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.report-type-option:hover {
+  border-color: #fc8181;
+  background: #fff5f5;
+}
+
+.report-type-option.selected {
+  border-color: #e53e3e;
+  background: #fff5f5;
+  color: #742a2a;
+  font-weight: 600;
+}
+
+/* ── Textarea ────────────────────────────────────────────────────────────── */
+.report-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  resize: vertical;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.report-textarea:focus {
+  border-color: #667eea;
+}
+
+/* ── Disclaimer ──────────────────────────────────────────────────────────── */
+.report-disclaimer {
+  font-size: 12px;
+  color: #999;
+  margin: 0;
+  text-align: center;
+}
+
+/* ── Action Buttons ──────────────────────────────────────────────────────── */
+.report-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.report-btn {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.report-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.report-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.report-btn--primary   { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+.report-btn--secondary { background: #f0f2f5; color: #555; }
+.report-btn--danger    { background: #e53e3e; color: #fff; }
+.report-btn--danger:not(:disabled):hover { background: #c53030; }
+
+/* ── Success State ───────────────────────────────────────────────────────── */
+.report-success {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.report-success-icon {
+  width: 56px;
+  height: 56px;
+  background: #c6f6d5;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  color: #276749;
+  margin: 0 auto 16px;
+}
+
+.report-success h3 {
+  font-size: 1.2rem;
+  color: #2d3748;
+  margin: 0 0 10px;
+}
+
+.report-success p {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 24px;
+  line-height: 1.6;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .report-modal {
+    padding: 22px 16px;
+  }
+
+  .report-type-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .report-actions {
+    flex-direction: column-reverse;
+  }
+}

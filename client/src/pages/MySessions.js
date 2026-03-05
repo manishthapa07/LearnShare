@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { tutorService } from '../services/tutorService';
 import { reviewService } from '../services/reviewService';
+import ReportModal from '../components/ReportModal';
 import './Notes.css';
 import './MySessions.css';
 
@@ -18,6 +19,7 @@ const MySessions = () => {
   const [reviewForm, setReviewForm] = useState({ rating: 5, review_text: '' });
   const [alertModal, setAlertModal] = useState({ show: false, message: '', type: 'success' });
   const [promptModal, setPromptModal] = useState({ show: false, title: '', details: '', value: '', onConfirm: null });
+  const [reportModal, setReportModal] = useState({ show: false, session: null });
 
   useEffect(() => {
     fetchSessions();
@@ -133,6 +135,7 @@ const MySessions = () => {
   }
 
   return (
+    <>
     <div className="notes-container">
       <h1>👤 Individual Sessions</h1>
       
@@ -348,6 +351,26 @@ const MySessions = () => {
                           Notes: {session.notes}
                         </small>
                       )}
+
+                      {/* Report button — available on any non-pending session */}
+                      {session.status !== 'pending' && (
+                        <button
+                          onClick={() => setReportModal({ show: true, session })}
+                          style={{
+                            padding: '5px 10px',
+                            backgroundColor: '#fff',
+                            color: '#e53e3e',
+                            border: '1.5px solid #fc8181',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '11px',
+                            fontWeight: 'bold',
+                            marginTop: '4px',
+                          }}
+                        >
+                          🚩 Report
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -454,6 +477,19 @@ const MySessions = () => {
         </div>
       )}
     </div>
+
+    {/* Report Modal */}
+    <ReportModal
+      show={reportModal.show}
+      onClose={() => setReportModal({ show: false, session: null })}
+      reportedUser={reportModal.session
+        ? (reportModal.session.tutor_id === user?.id
+            ? { id: reportModal.session.student_id, full_name: reportModal.session.student_name, username: reportModal.session.student_username }
+            : { id: reportModal.session.tutor_id,   full_name: reportModal.session.tutor_name,   username: reportModal.session.tutor_username })
+        : null}
+      sessionId={reportModal.session?.id}
+    />
+    </>
   );
 };
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Auth.css';
 
@@ -12,6 +12,8 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const successMessage = location.state?.message || '';
 
   const handleChange = (e) => {
     setFormData({
@@ -39,6 +41,7 @@ const Login = () => {
     <div className="auth-container">
       <div className="auth-box">
         <h2>Login to LearnShare</h2>
+        {successMessage && <div className="success-message">{successMessage}</div>}
         {error && <div className="error-message">{error}</div>}
         
         <form onSubmit={handleSubmit}>
@@ -72,6 +75,7 @@ const Login = () => {
         </form>
 
         <p className="auth-footer">
+          <Link to="/forgot-password" style={{ display: 'block', marginBottom: '8px', color: '#667eea' }}>Forgot your password?</Link>
           Don't have an account? <Link to="/register">Register here</Link>
         </p>
       </div>
