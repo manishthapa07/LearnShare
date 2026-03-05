@@ -126,7 +126,7 @@ const Navbar = () => {
               </li>
               {user?.role === 'admin' && (
                 <li className="nav-item">
-                  <Link to="/admin/payments" className="nav-link">Admin</Link>
+                  <Link to="/admin" className="nav-link">Admin</Link>
                 </li>
               )}
               {user?.role === 'tutor' && (

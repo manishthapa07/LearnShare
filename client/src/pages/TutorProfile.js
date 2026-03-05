@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { tutorService } from '../services/tutorService';
+import ReportModal from '../components/ReportModal';
 import './Profile.css';
 
 const TutorProfile = () => {
@@ -22,6 +23,7 @@ const TutorProfile = () => {
   const [loading, setLoading] = useState(true);
 
   const isOwnProfile = user?.id === id;
+  const [reportModal, setReportModal] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -184,9 +186,28 @@ const TutorProfile = () => {
                 </button>
               </div>
             ) : (
-              <button onClick={handleBookSession} className="btn-action">
-                Book a Session
-              </button>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <button onClick={handleBookSession} className="btn-action">
+                  Book a Session
+                </button>
+                {user && (
+                  <button
+                    onClick={() => setReportModal(true)}
+                    style={{
+                      padding: '10px 20px',
+                      backgroundColor: '#fff',
+                      color: '#e53e3e',
+                      border: '2px solid #fc8181',
+                      borderRadius: '5px',
+                      cursor: 'pointer',
+                      fontSize: '0.95rem',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    🚩 Report
+                  </button>
+                )}
+              </div>
             )}
           </div>
         ) : editing ? (
@@ -252,6 +273,12 @@ const TutorProfile = () => {
           </form>
         ) : null}
       </div>
+      
+      <ReportModal
+        show={reportModal}
+        onClose={() => setReportModal(false)}
+        reportedUser={profile ? { ...profile, id: profile.user_id } : null}
+      />
     </div>
   );
 };

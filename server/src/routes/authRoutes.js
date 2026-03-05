@@ -52,4 +52,20 @@ router.get('/profile', authMiddleware, authController.getProfile);
 // Update Profile (Protected)
 router.put('/profile', authMiddleware, authController.updateProfile);
 
+// Forgot Password
+router.post('/forgot-password',
+  [
+    body('email').isEmail().withMessage('Valid email is required')
+  ],
+  authController.forgotPassword
+);
+
+// Reset Password
+router.post('/reset-password/:token',
+  [
+    body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+  ],
+  authController.resetPassword
+);
+
 module.exports = router;

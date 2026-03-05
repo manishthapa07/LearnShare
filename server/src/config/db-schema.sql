@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS users (
     role VARCHAR(20) NOT NULL CHECK (role IN ('student', 'tutor', 'admin')),
     bio TEXT,
     profile_picture VARCHAR(255),
+    reset_password_token VARCHAR(255),
+    reset_password_expires TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
